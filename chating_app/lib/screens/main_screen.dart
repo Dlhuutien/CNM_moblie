@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'chat_screen.dart';
+import 'setting_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -12,10 +14,10 @@ class _MainScreenState extends State<MainScreen> { // Sửa tên lớp
 
   // List of screens for each tab
   final List<Widget> screens = [
-    Center(child: Text("Chat Screen")),
+    const ChatScreen(),
     Center(child: Text("Contacts Screen")),
-    Center(child: Text("Settings Screen")),
     Center(child: Text("Profile Screen")),
+    const SettingsScreen(),
   ];
 
   @override
@@ -51,8 +53,8 @@ class _MainScreenState extends State<MainScreen> { // Sửa tên lớp
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.chat), label: "Chat"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Contacts"),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
           BottomNavigationBarItem(icon: Icon(Icons.account_circle), label: "Profile"),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
         ],
         backgroundColor: Colors.white,
         selectedItemColor: Colors.blue,
