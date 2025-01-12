@@ -1,23 +1,26 @@
+import 'package:chating_app/screens/signUp_screen.dart';
 import 'package:flutter/material.dart';
 import 'chat_screen.dart';
-import 'setting_screen.dart';
+import 'contact_screen.dart'; // Import ContactScreen
+import 'profile_screen.dart'; // Import ProfileScreen
+import 'signUp_screen.dart'; // Import SignUpScreen
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
   @override
-  _MainScreenState createState() => _MainScreenState(); // Sửa tên lớp
+  _MainScreenState createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> { // Sửa tên lớp
+class _MainScreenState extends State<MainScreen> {
   int currentIndex = 0;
 
   // List of screens for each tab
   final List<Widget> screens = [
     const ChatScreen(),
-    Center(child: Text("Contacts Screen")),
-    Center(child: Text("Profile Screen")),
-    const SettingsScreen(),
+    const ContactScreen(), // Changed to ContactScreen
+    const ProfileScreen(), // Changed to ProfileScreen
+     SignUpScreen(), // Changed to SignUpScreen
   ];
 
   @override

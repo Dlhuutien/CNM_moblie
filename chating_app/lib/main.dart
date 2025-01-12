@@ -5,17 +5,15 @@ import 'screens/main_screen.dart';
 import 'screens/signUp_screen.dart'; // Import màn hình SignUp
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());  // Xóa 'const' khỏi MyApp
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/sign_up', // Bắt đầu từ màn hình SignUp
+      initialRoute: '/', // Đặt màn hình ban đầu là IntroductionScreen
       routes: {
         '/': (context) => IntroductionScreen(),
         '/login': (context) => LoginScreen(),
