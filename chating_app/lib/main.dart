@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'screens/introduction_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
-import 'screens/signUp_screen.dart'; // Import màn hình SignUp
+import 'screens/signUp_screen.dart';
 
-void main() {
-  runApp(MyApp());  // Xóa 'const' khỏi MyApp
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
+
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('en'), Locale('vi')],
+      path: 'assets/translations', // Thư mục chứa file JSON
+      fallbackLocale: const Locale('en'),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -13,13 +24,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/', // Đặt màn hình ban đầu là IntroductionScreen
+      initialRoute: '/',
       routes: {
-        '/': (context) => IntroductionScreen(),
-        '/login': (context) => LoginScreen(),
-        '/main': (context) => MainScreen(),
-        '/sign_up': (context) => SignUpScreen(), // Thêm màn hình SignUp
+        '/': (context) => const IntroductionScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/main': (context) => const MainScreen(),
+        '/sign_up': (context) => SignUpScreen(),
       },
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
     );
   }
 }
