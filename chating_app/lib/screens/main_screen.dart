@@ -1,9 +1,8 @@
-import 'package:chating_app/screens/signUp_screen.dart';
 import 'package:flutter/material.dart';
 import 'chat_screen.dart';
-import 'contact_screen.dart'; // Import ContactScreen
-import 'profile_screen.dart'; // Import ProfileScreen
-import 'signUp_screen.dart'; // Import SignUpScreen
+import 'contact_screen.dart';
+import 'profile_screen.dart';
+import 'setting_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -18,9 +17,9 @@ class _MainScreenState extends State<MainScreen> {
   // List of screens for each tab
   final List<Widget> screens = [
     const ChatScreen(),
-    const ContactScreen(), // Changed to ContactScreen
-    const ProfileScreen(), // Changed to ProfileScreen
-     SignUpScreen(), // Changed to SignUpScreen
+    const ContactScreen(),
+    const ProfileScreen(),
+    const SettingsScreen()
   ];
 
   @override
