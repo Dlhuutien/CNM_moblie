@@ -3,9 +3,11 @@ import 'chat_screen.dart';
 import 'contact_screen.dart';
 import 'profile_screen.dart';
 import 'setting_screen.dart';
+import 'package:chating_app/data/user.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final User user;
+  const MainScreen({super.key, required this.user});
 
   @override
   _MainScreenState createState() => _MainScreenState();
@@ -14,16 +16,15 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int currentIndex = 0;
 
-  // List of screens for each tab
-  final List<Widget> screens = [
-    const ChatScreen(),
-    const ContactScreen(),
-    const ProfileScreen(),
-    const SettingsScreen()
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final List<Widget> screens = [
+      const ChatScreen(),
+      const ContactScreen(),
+      ProfileScreen(user: widget.user),
+      const SettingsScreen()
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: TextField(
@@ -41,10 +42,7 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
       ),
-
-      // Display the selected screen based on the current index
       body: screens[currentIndex],
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (index) {
