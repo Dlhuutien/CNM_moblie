@@ -6,7 +6,7 @@ import 'setting_screen.dart';
 import 'package:chating_app/data/user.dart';
 
 class MainScreen extends StatefulWidget {
-  final User user;
+  final ObjectUser user;
   const MainScreen({super.key, required this.user});
 
   @override
