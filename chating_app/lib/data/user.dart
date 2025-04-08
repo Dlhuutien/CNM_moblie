@@ -1,4 +1,4 @@
-class User {
+class ObjectUser {
   final String soDienThoai;
   final String matKhau;
   final String hoTen;
@@ -7,7 +7,7 @@ class User {
   final String email;
   final String work;
 
-  User({
+  ObjectUser({
     required this.soDienThoai,
     required this.matKhau,
     required this.hoTen,

@@ -1,6 +1,10 @@
+import 'package:chating_app/data/user.dart';
 import 'package:chating_app/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:chating_app/data/information.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:chating_app/screens/forgot_pass_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -34,6 +38,91 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // Future<void> _signInWithGoogle() async {
+  //   try {
+  //     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+  //     if (googleUser == null) return; // người dùng huỷ
+  //
+  //     final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+  //
+  //     final credential = GoogleAuthProvider.credential(
+  //       accessToken: googleAuth.accessToken,
+  //       idToken: googleAuth.idToken,
+  //     );
+  //
+  //     final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+  //     final user = userCredential.user;
+  //
+  //     if (user != null) {
+  //       ObjectUser newUser = ObjectUser(
+  //         soDienThoai: '',
+  //         matKhau: '',
+  //         hoTen: user.displayName ?? '',
+  //         gender: '',
+  //         birthday: '',
+  //         email: user.email ?? '',
+  //         work: '',
+  //       );
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(builder: (context) => MainScreen(user: newUser)),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     print("Google login failed: $e");
+  //     setState(() {
+  //       _errorMessage = 'Đăng nhập Google thất bại!';
+  //     });
+  //   }
+  // }
+  Future<void> _signInWithGoogle() async {
+    try {
+      // Bước 1: Hiển thị giao diện đăng nhập Google
+      final GoogleSignInAccount? googleUser = await GoogleSignIn(
+          clientId: "19142047184-ul1hhcea8drflmk5jqokj5cu2aih2be9.apps.googleusercontent.com"
+      ).signIn();
+      if (googleUser == null) return; // Người dùng huỷ đăng nhập
+
+      // Bước 2: Lấy thông tin xác thực
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      // Bước 3: Tạo credential để đăng nhập với Firebase
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Bước 4: Đăng nhập vào Firebase
+      final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final user = userCredential.user;
+
+      if (user != null) {
+        // Tạo ObjectUser để đưa vào MainScreen
+        ObjectUser newUser = ObjectUser(
+          soDienThoai: '',
+          matKhau: '',
+          hoTen: user.displayName ?? '',
+          gender: '',
+          birthday: '',
+          email: user.email ?? '',
+          work: '',
+        );
+
+        // Điều hướng sang màn hình chính
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainScreen(user: newUser)),
+        );
+      }
+    } catch (e) {
+      print("Đăng nhập Google thất bại: $e");
+      setState(() {
+        _errorMessage = 'Đăng nhập Google thất bại. Vui lòng thử lại!';
+      });
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,11 +136,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 .of(context)
                 .viewInsets
                 .bottom),
-            child: SizedBox(
-              height: MediaQuery
-                  .of(context)
-                  .size
-                  .height,
+            child: IntrinsicHeight(
+              // height: MediaQuery.of(context).size.height,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -93,12 +179,24 @@ class _LoginScreenState extends State<LoginScreen> {
                               prefixIcon: Icon(Icons.lock),
                               hintText: "Enter your password",
                               border: UnderlineInputBorder(),
-                              suffix: Text(
+                            ),
+                            obscureText: true,
+                          ),
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
+                                );
+                              },
+                              child: const Text(
                                 "Forgot password?",
                                 style: TextStyle(color: Colors.blue),
                               ),
                             ),
-                            obscureText: true,
                           ),
                           const SizedBox(height: 10),
                           if (_errorMessage.isNotEmpty)
@@ -164,7 +262,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               IconButton(
                                 icon: const Icon(
                                     Icons.g_mobiledata, color: Colors.red),
-                                onPressed: () {},
+                                onPressed: _signInWithGoogle,
+                                  // onPressed: (){}
                               ),
                             ],
                           ),

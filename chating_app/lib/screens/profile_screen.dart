@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:chating_app/data/user.dart';
 
 class ProfileScreen extends StatelessWidget {
-  final User user;
+  final ObjectUser user;
   const ProfileScreen({super.key, required this.user});
 
   @override
@@ -67,7 +67,7 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class ProfileInfo extends StatelessWidget {
-  final User user;
+  final ObjectUser user;
   const ProfileInfo({super.key, required this.user});
 
   @override
