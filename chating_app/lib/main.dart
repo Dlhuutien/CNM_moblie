@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const IntroductionScreen(),
         '/login': (context) => const LoginScreen(),
-        '/main': (context) => const MainScreen(),
+        // '/main': (context) => const MainScreen(),
         '/sign_up': (context) => SignUpScreen(),
       },
       localizationsDelegates: context.localizationDelegates,

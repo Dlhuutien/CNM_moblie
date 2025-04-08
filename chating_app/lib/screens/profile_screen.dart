@@ -1,98 +1,90 @@
 import 'package:flutter/material.dart';
+import 'package:chating_app/data/user.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  final User user;
+  const ProfileScreen({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // leading: IconButton(
-        //   icon: const Icon(Icons.arrow_back),
-        //   onPressed: () => Navigator.pop(context),
-        // ),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.add),
-        //     onPressed: () {
-        //       // Thực hiện hành động khi thêm gì đó (ví dụ: tạo mới)
-        //     },
-        //   ),
-        // ],
-        // backgroundColor: Colors.blueAccent,
-        // elevation: 0,
-        toolbarHeight: 0,
+        toolbarHeight: 0, // Ẩn AppBar mặc định
       ),
-        body: SingleChildScrollView(
+      body: SingleChildScrollView(
         child: Column(
-        children: [
-          // Header section: Avatar and name
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            decoration: const BoxDecoration(
-              color: Colors.blueAccent,
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-            ),
-            child: Column(
-              children: [
-                Stack(
-                  children: [
-                    const CircleAvatar(
-                      radius: 50,
-                      backgroundImage: AssetImage('assets/profile.png'),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: const CircleAvatar(
-                        radius: 15,
-                        backgroundColor: Colors.white,
-                        child: Icon(Icons.edit, size: 18, color: Colors.blueAccent),
+          children: [
+            // Header section: Avatar and name
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              decoration: const BoxDecoration(
+                color: Colors.blueAccent,
+                borderRadius:
+                BorderRadius.vertical(bottom: Radius.circular(20)),
+              ),
+              child: Column(
+                children: [
+                  Stack(
+                    children: [
+                      const CircleAvatar(
+                        radius: 50,
+                        backgroundImage: AssetImage('assets/profile.png'),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Dang Le Huu Tien',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: const CircleAvatar(
+                          radius: 15,
+                          backgroundColor: Colors.white,
+                          child: Icon(Icons.edit,
+                              size: 18, color: Colors.blueAccent),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  Text(
+                    user.hoTen,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          // Info section
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: ProfileInfo(),
-          ),
-        ],
+            // Info section
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ProfileInfo(user: user),
+            ),
+          ],
+        ),
       ),
-    ));
+    );
   }
 }
 
 class ProfileInfo extends StatelessWidget {
-  const ProfileInfo({super.key});
+  final User user;
+  const ProfileInfo({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildInfoRow('Phone:', '(090)000000', context),
-        _buildInfoRow('Gender:', 'Male', context),
-        _buildInfoRow('Birthday:', '06/12/2003', context),
-        _buildInfoRow('Email:', 'lyquocminh@gmail.com', context),
-        _buildInfoRow('Work:', 'Frontend Engineer', context),
+        _buildInfoRow('Phone:', user.soDienThoai),
+        _buildInfoRow('Gender:', user.gender),
+        _buildInfoRow('Birthday:', user.birthday),
+        _buildInfoRow('Email:', user.email),
+        _buildInfoRow('Work:', user.work),
       ],
     );
   }
 
-  Widget _buildInfoRow(String label, String value, BuildContext context) {
+  Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -109,7 +101,7 @@ class ProfileInfo extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.edit, size: 18, color: Colors.blueAccent),
                 onPressed: () {
-                  // Thực hiện hành động khi chỉnh sửa thông tin
+                  // Chức năng chỉnh sửa sẽ thêm sau nếu cần
                 },
               ),
             ],
