@@ -7,22 +7,24 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              // Thực hiện hành động khi thêm gì đó (ví dụ: tạo mới)
-            },
-          ),
-        ],
-        backgroundColor: Colors.blueAccent,
-        elevation: 0,
+        // leading: IconButton(
+        //   icon: const Icon(Icons.arrow_back),
+        //   onPressed: () => Navigator.pop(context),
+        // ),
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.add),
+        //     onPressed: () {
+        //       // Thực hiện hành động khi thêm gì đó (ví dụ: tạo mới)
+        //     },
+        //   ),
+        // ],
+        // backgroundColor: Colors.blueAccent,
+        // elevation: 0,
+        toolbarHeight: 0,
       ),
-      body: Column(
+        body: SingleChildScrollView(
+        child: Column(
         children: [
           // Header section: Avatar and name
           Container(
@@ -52,7 +54,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  'LY QUOC MINH',
+                  'Dang Le Huu Tien',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -69,7 +71,7 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 }
 

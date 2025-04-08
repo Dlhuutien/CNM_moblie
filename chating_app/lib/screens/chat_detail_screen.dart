@@ -212,8 +212,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     ),
                     SizedBox(height: 10),
                     // Nếu tệp là hình ảnh, thêm widget Image để hiển thị ảnh
-                    if (_selectedFile!.endsWith('.jpg') || _selectedFile!.endsWith('.png'))
-                      Image.file(File(_selectedFile!)),
+                    // if (_selectedFile!.endsWith('.jpg') || _selectedFile!.endsWith('.png'))
+                    //   Image.file(File(_selectedFile!)),
                     // Nếu tệp là PDF, hiển thị một biểu tượng PDF hoặc tên tệp
                     if (_selectedFile!.endsWith('.pdf'))
                       Icon(Icons.picture_as_pdf, color: Colors.red),
