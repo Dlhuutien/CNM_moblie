@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:chating_app/data/user.dart';
 
+
 class ProfileScreen extends StatelessWidget {
   final ObjectUser user;
   const ProfileScreen({super.key, required this.user});
