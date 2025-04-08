@@ -9,7 +9,8 @@ class ContactScreen extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Contact'),
+          // title: const Text('Contact'),
+          toolbarHeight: 0,
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Friend List'),
