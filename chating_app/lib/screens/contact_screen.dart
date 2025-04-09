@@ -41,7 +41,7 @@ class FriendList extends StatelessWidget {
       itemBuilder: (context, index) {
         return ListTile(
           leading: const CircleAvatar(
-            backgroundImage: AssetImage('assets/profile.png'),
+            backgroundImage: AssetImage('assets/images/Introduction_profile.png'),
           ),
           title: Text('Friend ${index + 1}'),
           subtitle: Text('Hello, I\'m Friend ${index + 1}'),

@@ -16,65 +16,29 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
   String _errorMessage = '';
 
-  void _handleLogin() {
-    final phone = _phoneController.text.trim();
-    final pass = _passwordController.text.trim();
-
-    final user = LoginData.login(phone, pass);
-    if (user != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          // builder: (context) => ProfileScreen(user: user),
-          builder: (context) => MainScreen(user: user),
-        ),
-      );
-    } else {
-      setState(() {
-        _errorMessage = 'Số điện thoại hoặc mật khẩu không đúng!';
-      });
-    }
-  }
-
-  // Future<void> _signInWithGoogle() async {
-  //   try {
-  //     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-  //     if (googleUser == null) return; // người dùng huỷ
+  // void _handleLogin() {
+  //   final phone = _phoneController.text.trim();
+  //   final pass = _passwordController.text.trim();
   //
-  //     final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-  //
-  //     final credential = GoogleAuthProvider.credential(
-  //       accessToken: googleAuth.accessToken,
-  //       idToken: googleAuth.idToken,
+  //   final user = LoginData.login(phone, pass);
+  //   if (user != null) {
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(
+  //         // builder: (context) => ProfileScreen(user: user),
+  //         builder: (context) => MainScreen(user: user),
+  //       ),
   //     );
-  //
-  //     final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-  //     final user = userCredential.user;
-  //
-  //     if (user != null) {
-  //       ObjectUser newUser = ObjectUser(
-  //         soDienThoai: '',
-  //         matKhau: '',
-  //         hoTen: user.displayName ?? '',
-  //         gender: '',
-  //         birthday: '',
-  //         email: user.email ?? '',
-  //         work: '',
-  //       );
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => MainScreen(user: newUser)),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     print("Google login failed: $e");
+  //   } else {
   //     setState(() {
-  //       _errorMessage = 'Đăng nhập Google thất bại!';
+  //       _errorMessage = 'Số điện thoại hoặc mật khẩu không đúng!';
   //     });
   //   }
   // }
+
   Future<void> _signInWithGoogle() async {
     try {
       // Bước 1: Hiển thị giao diện đăng nhập Google
@@ -99,13 +63,13 @@ class _LoginScreenState extends State<LoginScreen> {
       if (user != null) {
         // Tạo ObjectUser để đưa vào MainScreen
         ObjectUser newUser = ObjectUser(
-          soDienThoai: '',
+          soDienThoai: user.phoneNumber ?? '',
           matKhau: '',
           hoTen: user.displayName ?? '',
-          gender: '',
-          birthday: '',
+          gender: 'Nam',
+          birthday: '29/08/2003',
           email: user.email ?? '',
-          work: '',
+          work: 'Developer Software',
         );
 
         // Điều hướng sang màn hình chính
@@ -225,7 +189,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 40),
                           ElevatedButton(
-                            onPressed: _handleLogin,
+                            // onPressed: _handleLogin,
+                            onPressed: ()=>{ApiService.login(context, _phoneController.text, _passwordController.text)},
+
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue,
                               padding: const EdgeInsets.symmetric(vertical: 15),
