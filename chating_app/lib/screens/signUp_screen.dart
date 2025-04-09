@@ -1,3 +1,4 @@
+import 'package:chating_app/data/information.dart';
 import 'package:flutter/material.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -14,6 +15,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   String? errorMessage;
 
+
+
   void _signUp() {
     if (_formKey.currentState?.validate() ?? false) {
       setState(() {
@@ -27,8 +30,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
         return;
       }
 
-      // Tiến hành đăng ký ở đây (ví dụ gửi request API)
-      print("User signed up: ${_nameController.text}");
+      // Tiến hành đăng ký (gửi request API)
+      // print("User signed up: ${_nameController.text}");
+      ApiServiceSignUp.register(
+        context,
+        _nameController.text,
+        _phoneController.text,
+        _passwordController.text,
+      );
 
       // Sau khi đăng ký thành công, bạn có thể điều hướng đến màn hình chính
       ScaffoldMessenger.of(context).showSnackBar(

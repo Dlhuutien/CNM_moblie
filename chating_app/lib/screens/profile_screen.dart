@@ -28,7 +28,7 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       const CircleAvatar(
                         radius: 50,
-                        backgroundImage: AssetImage('assets/profile.png'),
+                        backgroundImage: AssetImage('assets/images/Introduction_video_calls.png'),
                       ),
                       Positioned(
                         bottom: 0,
