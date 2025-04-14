@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+// import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'chat_profile_screen.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart' as emoji;
+
 
 class ChatDetailScreen extends StatefulWidget {
   final String name;
@@ -174,31 +176,32 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 },
               ),
             ),
-            if (_showEmojiPicker)
-              SizedBox(
-                height: 250,
-                child: EmojiPicker(
-                  onEmojiSelected: (category, emoji) {
-                    _messageController.text += emoji.emoji;
-                  },
-                  config: Config(
-                    columns: 7,
-                    emojiSizeMax: 32,
-                    verticalSpacing: 10,
-                    horizontalSpacing: 10,
-                    gridPadding: const EdgeInsets.all(5),
-                    bgColor: Colors.white,
-                    indicatorColor: Colors.blue,
-                    iconColor: Colors.grey,
-                    iconColorSelected: Colors.blue,
-                    backspaceColor: Colors.red,
-                    recentsLimit: 28,
-                    tabIndicatorAnimDuration: kTabScrollDuration,
-                    categoryIcons: const CategoryIcons(),
-                    buttonMode: ButtonMode.MATERIAL,
-                  ),
-                ),
-              ),
+            // if (_showEmojiPicker)
+            //   SizedBox(
+            //     height: 250,
+            //     child: EmojiPicker(
+            //       onEmojiSelected: (category, emoji) {
+            //         _messageController.text += emoji.emoji;
+            //       },
+            //       config: Config(
+            //         columns: 7,
+            //         emojiSizeMax: 32,
+            //         verticalSpacing: 10,
+            //         horizontalSpacing: 10,
+            //         gridPadding: const EdgeInsets.all(5),
+            //         bgColor: Colors.white,
+            //         indicatorColor: Colors.blue,
+            //         iconColor: Colors.grey,
+            //         iconColorSelected: Colors.blue,
+            //         backspaceColor: Colors.red,
+            //         recentsLimit: 28,
+            //         tabIndicatorAnimDuration: kTabScrollDuration,
+            //         categoryIcons: const CategoryIcons(),
+            //         buttonMode: ButtonMode.MATERIAL,
+            //       ),
+            //
+            //     ),
+            //   ),
 
             if (_selectedFile != null)
               Padding(
