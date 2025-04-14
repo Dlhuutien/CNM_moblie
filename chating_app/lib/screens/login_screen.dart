@@ -63,6 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (user != null) {
         // Tạo ObjectUser để đưa vào MainScreen
         ObjectUser newUser = ObjectUser(
+          userID: "",
           soDienThoai: user.phoneNumber ?? '',
           matKhau: '',
           hoTen: user.displayName ?? '',

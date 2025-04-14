@@ -1,4 +1,5 @@
 class ObjectUser {
+  final String userID;
   final String soDienThoai;
   final String matKhau;
   final String hoTen;
@@ -8,6 +9,7 @@ class ObjectUser {
   final String work;
 
   ObjectUser({
+    required this.userID,
     required this.soDienThoai,
     required this.matKhau,
     required this.hoTen,

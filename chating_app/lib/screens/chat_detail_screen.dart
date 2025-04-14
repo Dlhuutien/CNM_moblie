@@ -1,18 +1,25 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-// import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'chat_profile_screen.dart';
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart' as emoji;
-
+import 'package:chating_app/services/websocket_service.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String name;
+  final String chatId;
+  final String userId;
 
-  const ChatDetailScreen({super.key, required this.name});
+  const ChatDetailScreen({
+    super.key,
+    required this.name,
+    required this.chatId,
+    required this.userId,
+  });
 
   @override
   _ChatDetailScreenState createState() => _ChatDetailScreenState();
@@ -20,18 +27,67 @@ class ChatDetailScreen extends StatefulWidget {
 
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _messageController = TextEditingController();
-  final List<String> _messages = [];
+  List<Map<String, dynamic>> _messages = [];
   bool _showEmojiPicker = false;
 
   String? _selectedFile;
-
   FlutterSoundRecorder? _recorder;
   bool _isRecording = false;
+  // late WebSocketService _webSocketService;
+  WebSocketService? _webSocketService;
+
+  @override
+  void initState() {
+    super.initState();
+    _recorder = FlutterSoundRecorder();
+    _initializeRecorder();
+    _fetchMessages();
+
+    _webSocketService = WebSocketService(
+      userId: widget.userId,
+      chatId: widget.chatId,
+      onMessage: (message) {
+        setState(() {
+          _messages.insert(0, message);
+        });
+      },
+    );
+    // _webSocketService.connect();
+    _webSocketService?.connect();
+  }
+
+  Future<void> _fetchMessages() async {
+    final url = Uri.parse("http://138.2.106.32/chat/${widget.chatId}/history/50?userId=${widget.userId}");
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      setState(() {
+        _messages = List<Map<String, dynamic>>.from(data['data']);
+      });
+    } else {
+      print("L\u1ed7i t\u1ea3i tin nh\u1eafn: \${response.body}");
+    }
+  }
+  String _formatTimestamp(String? iso) {
+    if (iso == null || iso.isEmpty) return "";
+    final dt = DateTime.tryParse(iso);
+    if (dt == null) return "";
+    return "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+  }
+
 
   void _sendMessage() {
-    if (_messageController.text.trim().isNotEmpty) {
+    final content = _messageController.text.trim();
+    if (content.isNotEmpty) {
+      // _webSocketService.sendMessage(content);
+      _webSocketService?.sendMessage(content);
       setState(() {
-        _messages.add(_messageController.text.trim());
+        _messages.insert(0, {
+          "userId": widget.userId,
+          "content": content,
+          "timestamp": DateTime.now().toIso8601String(),
+        });
       });
       _messageController.clear();
     }
@@ -61,26 +117,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       setState(() {
         _selectedFile = filePath;
       });
-      print("Selected file: $filePath");
+      print("Selected file: \$filePath");
     } else {
       print("File selection canceled");
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _recorder = FlutterSoundRecorder();
-    _initializeRecorder();
-  }
-
   Future<void> _initializeRecorder() async {
-    // Yêu cầu quyền sử dụng mic
     var status = await Permission.microphone.request();
     if (status != PermissionStatus.granted) {
       throw RecordingPermissionException("Mic permission not granted");
     }
-
     await _recorder!.openRecorder();
   }
 
@@ -96,18 +143,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     setState(() {
       _isRecording = false;
     });
-
-    // Xử lý file ghi âm tại filePath
-    print("Recording saved to: $filePath");
+    print("Recording saved to: \$filePath");
   }
 
   @override
   void dispose() {
-    _recorder!.closeRecorder();
-    _recorder = null;
+    _recorder?.closeRecorder();
+    // _webSocketService.close();
+    _webSocketService?.close();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -120,22 +165,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         title: Row(
           children: [
             const SizedBox(width: 10),
-            Text(widget.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Flexible(
+              child: Text(
+                widget.name,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.call),
-            onPressed: () {
-              // Add call functionality
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.push_pin),
-            onPressed: () {
-              // Add pin functionality
-            },
-          ),
+          IconButton(icon: const Icon(Icons.call), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.push_pin), onPressed: () {}),
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () {
@@ -150,80 +191,50 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         ],
       ),
       body: GestureDetector(
-        onTap: _dismissEmojiPicker, // Dismiss emoji picker if user taps outside
+        onTap: _dismissEmojiPicker,
         child: Column(
           children: [
             Expanded(
               child: ListView.builder(
+                reverse: true,
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
-                  final isUserMessage = index % 2 == 0;
+                  final message = _messages[index];
+                  final isUserMessage = message['userId'].toString() == widget.userId;
+
                   return Align(
                     alignment: isUserMessage ? Alignment.centerRight : Alignment.centerLeft,
                     child: Card(
                       color: isUserMessage ? Colors.blue : Colors.grey[200],
                       child: Padding(
                         padding: const EdgeInsets.all(10.0),
-                        child: Text(
-                          _messages[index],
-                          style: TextStyle(
-                            color: isUserMessage ? Colors.white : Colors.black,
-                          ),
+                        child: Column(
+                          crossAxisAlignment:
+                          isUserMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              message['content'] ?? '',
+                              style: TextStyle(
+                                color: isUserMessage ? Colors.white : Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _formatTimestamp(message['timestamp']),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: isUserMessage ? Colors.white : Colors.grey,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   );
+
                 },
               ),
             ),
-            // if (_showEmojiPicker)
-            //   SizedBox(
-            //     height: 250,
-            //     child: EmojiPicker(
-            //       onEmojiSelected: (category, emoji) {
-            //         _messageController.text += emoji.emoji;
-            //       },
-            //       config: Config(
-            //         columns: 7,
-            //         emojiSizeMax: 32,
-            //         verticalSpacing: 10,
-            //         horizontalSpacing: 10,
-            //         gridPadding: const EdgeInsets.all(5),
-            //         bgColor: Colors.white,
-            //         indicatorColor: Colors.blue,
-            //         iconColor: Colors.grey,
-            //         iconColorSelected: Colors.blue,
-            //         backspaceColor: Colors.red,
-            //         recentsLimit: 28,
-            //         tabIndicatorAnimDuration: kTabScrollDuration,
-            //         categoryIcons: const CategoryIcons(),
-            //         buttonMode: ButtonMode.MATERIAL,
-            //       ),
-            //
-            //     ),
-            //   ),
-
-            if (_selectedFile != null)
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Selected file: $_selectedFile", // Hiển thị đường dẫn tệp
-                      style: TextStyle(color: Colors.green),
-                    ),
-                    SizedBox(height: 10),
-                    // Nếu tệp là hình ảnh, thêm widget Image để hiển thị ảnh
-                    // if (_selectedFile!.endsWith('.jpg') || _selectedFile!.endsWith('.png'))
-                    //   Image.file(File(_selectedFile!)),
-                    // Nếu tệp là PDF, hiển thị một biểu tượng PDF hoặc tên tệp
-                    if (_selectedFile!.endsWith('.pdf'))
-                      Icon(Icons.picture_as_pdf, color: Colors.red),
-                  ],
-                ),
-              ),
-
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(

@@ -192,6 +192,7 @@ class ApiService {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         ObjectUser userData = ObjectUser(
+          userID: data['id'].toString(),
           soDienThoai: data['phone'] ?? "",
           matKhau: data["password"] ?? "",
           hoTen: data["name"] ?? "",
