@@ -6,6 +6,9 @@ import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/foundation.dart' as foundation;
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+
 import 'chat_profile_screen.dart';
 import 'package:chating_app/services/websocket_service.dart';
 
@@ -25,7 +28,7 @@ class ChatDetailScreen extends StatefulWidget {
   _ChatDetailScreenState createState() => _ChatDetailScreenState();
 }
 
-class _ChatDetailScreenState extends State<ChatDetailScreen> {
+class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBindingObserver{
   final TextEditingController _messageController = TextEditingController();
   List<Map<String, dynamic>> _messages = [];
   bool _showEmojiPicker = false;
@@ -33,12 +36,25 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   String? _selectedFile;
   FlutterSoundRecorder? _recorder;
   bool _isRecording = false;
-  // late WebSocketService _webSocketService;
   WebSocketService? _webSocketService;
+
+  @override
+  void didChangeMetrics() {
+    final bottomInset = WidgetsBinding.instance.window.viewInsets.bottom;
+    final isKeyboardVisible = bottomInset > 0.0;
+
+    if (isKeyboardVisible && _showEmojiPicker) {
+      setState(() {
+        _showEmojiPicker = false;
+      });
+    }
+  }
+
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _recorder = FlutterSoundRecorder();
     _initializeRecorder();
     _fetchMessages();
@@ -52,7 +68,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         });
       },
     );
-    // _webSocketService.connect();
     _webSocketService?.connect();
   }
 
@@ -66,9 +81,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         _messages = List<Map<String, dynamic>>.from(data['data']);
       });
     } else {
-      print("L\u1ed7i t\u1ea3i tin nh\u1eafn: \${response.body}");
+      print("Lỗi tải tin nhắn: ${response.body}");
     }
   }
+
   String _formatTimestamp(String? iso) {
     if (iso == null || iso.isEmpty) return "";
     final dt = DateTime.tryParse(iso);
@@ -76,11 +92,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     return "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
   }
 
-
   void _sendMessage() {
     final content = _messageController.text.trim();
     if (content.isNotEmpty) {
-      // _webSocketService.sendMessage(content);
       _webSocketService?.sendMessage(content);
       setState(() {
         _messages.insert(0, {
@@ -93,7 +107,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
-  void _toggleEmojiPicker() {
+  void _toggleEmojiPicker() async {
+    //Tắt bàn phím trước khi list emoji hiển thị
+    FocusScope.of(context).unfocus();
+    //Delay khoảng 300ms rồi mới hiển thị emoji picker
+    await Future.delayed(const Duration(milliseconds: 500));
+
     setState(() {
       _showEmojiPicker = !_showEmojiPicker;
     });
@@ -117,7 +136,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       setState(() {
         _selectedFile = filePath;
       });
-      print("Selected file: \$filePath");
+      print("Selected file: $filePath");
     } else {
       print("File selection canceled");
     }
@@ -143,13 +162,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     setState(() {
       _isRecording = false;
     });
-    print("Recording saved to: \$filePath");
+    print("Recording saved to: $filePath");
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _recorder?.closeRecorder();
-    // _webSocketService.close();
     _webSocketService?.close();
     super.dispose();
   }
@@ -183,16 +202,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ChatProfileScreen(name: widget.name),
+                  builder: (context) => ChatProfileScreen(
+                    chatId: widget.chatId,
+                    userId: widget.userId,
+                  ),
                 ),
               );
+
             },
           ),
         ],
       ),
       body: GestureDetector(
         onTap: _dismissEmojiPicker,
-        child: Column(
+        child: SafeArea(
+          child: Column(
           children: [
             Expanded(
               child: ListView.builder(
@@ -201,7 +225,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 itemBuilder: (context, index) {
                   final message = _messages[index];
                   final isUserMessage = message['userId'].toString() == widget.userId;
-
                   return Align(
                     alignment: isUserMessage ? Alignment.centerRight : Alignment.centerLeft,
                     child: Card(
@@ -209,15 +232,28 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: Column(
-                          crossAxisAlignment:
-                          isUserMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                          crossAxisAlignment: isUserMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              message['content'] ?? '',
-                              style: TextStyle(
-                                color: isUserMessage ? Colors.white : Colors.black,
+                            if (message['attachmentUrl'] != null && message['attachmentUrl'].toString().isNotEmpty)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  message['attachmentUrl'],
+                                  width: 200,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => const Text('Error loading image'),
+                                ),
                               ),
-                            ),
+                            if (message['content'] != null && message['content'].toString().isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 6.0),
+                                child: Text(
+                                  message['content'],
+                                  style: TextStyle(
+                                    color: isUserMessage ? Colors.white : Colors.black,
+                                  ),
+                                ),
+                              ),
                             const SizedBox(height: 4),
                             Text(
                               _formatTimestamp(message['timestamp']),
@@ -231,7 +267,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       ),
                     ),
                   );
-
                 },
               ),
             ),
@@ -278,8 +313,39 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 ],
               ),
             ),
+            if (_showEmojiPicker)
+              SizedBox(
+                height: 300,
+                child: EmojiPicker(
+                  onEmojiSelected: (category, emoji) {
+                    _messageController.text += emoji.emoji;
+                    _messageController.selection = TextSelection.fromPosition(
+                      TextPosition(offset: _messageController.text.length),
+                    );
+                  },
+                  onBackspacePressed: () {
+                    _messageController.text = _messageController.text.characters.skipLast(1).toString();
+                    _messageController.selection = TextSelection.fromPosition(
+                      TextPosition(offset: _messageController.text.length),
+                    );
+                  },
+                  textEditingController: _messageController,
+                  config: Config(
+                    height: 300,
+                    checkPlatformCompatibility: true,
+                    emojiViewConfig: EmojiViewConfig(
+                      emojiSizeMax: 28 *
+                          (foundation.defaultTargetPlatform == TargetPlatform.iOS ? 1.20 : 1.0),
+                    ),
+                    categoryViewConfig: const CategoryViewConfig(),
+                    bottomActionBarConfig: const BottomActionBarConfig(),
+                    searchViewConfig: const SearchViewConfig(),
+                  ),
+                ),
+              ),
           ],
         ),
+    ),
       ),
     );
   }
