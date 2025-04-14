@@ -26,6 +26,8 @@ class ApiService {
           birthday: data["birthday"] ?? "",
           email: data['email'] ?? '',
           work: "",
+          image: data["image"] ?? "",
+          location: data["location"] ?? "",
         );
 
         return userData;
