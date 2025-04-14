@@ -19,26 +19,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String _errorMessage = '';
 
-  // void _handleLogin() {
-  //   final phone = _phoneController.text.trim();
-  //   final pass = _passwordController.text.trim();
-  //
-  //   final user = LoginData.login(phone, pass);
-  //   if (user != null) {
-  //     Navigator.push(
-  //       context,
-  //       MaterialPageRoute(
-  //         // builder: (context) => ProfileScreen(user: user),
-  //         builder: (context) => MainScreen(user: user),
-  //       ),
-  //     );
-  //   } else {
-  //     setState(() {
-  //       _errorMessage = 'Số điện thoại hoặc mật khẩu không đúng!';
-  //     });
-  //   }
-  // }
-
   Future<void> _signInWithGoogle() async {
     try {
       // Bước 1: Hiển thị giao diện đăng nhập Google
@@ -71,6 +51,8 @@ class _LoginScreenState extends State<LoginScreen> {
           birthday: '29/08/2003',
           email: user.email ?? '',
           work: 'Developer Software',
+          image: "",
+          location:"",
         );
 
         // Điều hướng sang màn hình chính
@@ -189,35 +171,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ],
                           ),
                           const SizedBox(height: 40),
-                          // ElevatedButton(
-                          //   // onPressed: _handleLogin,
-                          //   // onPressed: ()=>{ApiService.login(context, _phoneController.text, _passwordController.text)},
-                          //   onPressed: () async {
-                          //     ObjectUser? user = await ApiService.login(context, _phoneController.text, _passwordController.text);
-                          //     if (user != null) {
-                          //       Navigator.pushReplacement(
-                          //         context,
-                          //         MaterialPageRoute(builder: (context) => MainScreen(user: user)),
-                          //       );
-                          //     } else {
-                          //       setState(() {
-                          //         _errorMessage = 'Số điện thoại hoặc mật khẩu không đúng!';
-                          //       });
-                          //     }
-                          //   },
-                          //   style: ElevatedButton.styleFrom(
-                          //     backgroundColor: Colors.blue,
-                          //     padding: const EdgeInsets.symmetric(vertical: 15),
-                          //     shape: RoundedRectangleBorder(
-                          //       borderRadius: BorderRadius.circular(30),
-                          //     ),
-                          //   ),
-                          //   child: const Text(
-                          //     "Login",
-                          //     style: TextStyle(
-                          //         fontSize: 18, color: Colors.white),
-                          //   ),
-                          // ),
                           ElevatedButton(
                             onPressed: () async {
                               ObjectUser? user = await ApiService.login(
@@ -235,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   _errorMessage = 'Số điện thoại hoặc mật khẩu không đúng!';
                                 });
                               }
-                            }, // ← thêm dấu phẩy ở đây
+                            },
 
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue,
@@ -274,7 +227,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 icon: const Icon(
                                     Icons.g_mobiledata, color: Colors.red),
                                 onPressed: _signInWithGoogle,
-                                  // onPressed: (){}
+                                // onPressed: (){}
                               ),
                             ],
                           ),
