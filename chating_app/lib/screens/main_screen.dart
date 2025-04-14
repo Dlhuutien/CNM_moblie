@@ -19,7 +19,8 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> screens = [
-      const ChatScreen(),
+      // const ChatScreen(),
+      ChatScreen(user: widget.user),
       const ContactScreen(),
       ProfileScreen(user: widget.user),
       const SettingsScreen()
