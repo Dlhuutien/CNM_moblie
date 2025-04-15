@@ -1,3 +1,4 @@
+import 'package:chating_app/services/chat_api.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -19,20 +20,15 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _loadPartnerInfo();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
-  Future<void> _loadPartnerInfo() async {
-    final url = Uri.parse("http://138.2.106.32/chat/${widget.chatId}/info?userId=${widget.userId}");
-    final res = await http.get(url);
-    if (res.statusCode == 200) {
-      final data = jsonDecode(res.body);
-      final members = data['data']['members'] as List<dynamic>;
+  Future<void> _loadData() async {
+    try {
+      final partner = await ChatApi.loadPartnerInfo(widget.chatId, widget.userId);
       final messages = await _loadChatMessages();
-      final currentUserId = widget.userId;
-
-      // Tìm người đang chat với mình
-      final partner = members.firstWhere((m) => m['userId'].toString() != currentUserId);
 
       setState(() {
         partnerInfo = partner;
@@ -41,6 +37,8 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
             .map<String>((msg) => msg['attachmentUrl'] as String)
             .toList();
       });
+    } catch (e) {
+      print("Lỗi khi load dữ liệu profile: $e");
     }
   }
 
