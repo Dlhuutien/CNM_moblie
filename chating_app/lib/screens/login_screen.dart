@@ -19,6 +19,42 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String _errorMessage = '';
 
+  void _handleLogin() async {
+    final phone = _phoneController.text.trim();
+    final password = _passwordController.text.trim();
+
+    final phoneValid = RegExp(r'^\d{10}$').hasMatch(phone);
+    final passwordValid = RegExp(r'^[\S]{8,16}$').hasMatch(password);
+
+    if (!phoneValid) {
+      setState(() {
+        _errorMessage = 'Số điện thoại phải đúng 10 chữ số.';
+      });
+      return;
+    }
+
+    if (!passwordValid) {
+      setState(() {
+        _errorMessage = 'Mật khẩu 8-16 ký tự, không dấu cách.';
+      });
+      return;
+    }
+
+    ObjectUser? user = await ApiService.login(context, phone, password);
+
+    if (user != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreen(user: user)),
+      );
+    } else {
+      setState(() {
+        _errorMessage = 'Số điện thoại hoặc mật khẩu không đúng!';
+      });
+    }
+  }
+
+
   Future<void> _signInWithGoogle() async {
     try {
       // Bước 1: Hiển thị giao diện đăng nhập Google
@@ -172,24 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 40),
                           ElevatedButton(
-                            onPressed: () async {
-                              ObjectUser? user = await ApiService.login(
-                                context,
-                                _phoneController.text,
-                                _passwordController.text,
-                              );
-                              if (user != null) {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => MainScreen(user: user)),
-                                );
-                              } else {
-                                setState(() {
-                                  _errorMessage = 'Số điện thoại hoặc mật khẩu không đúng!';
-                                });
-                              }
-                            },
-
+                            onPressed:  _handleLogin,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue,
                               padding: const EdgeInsets.symmetric(vertical: 15),

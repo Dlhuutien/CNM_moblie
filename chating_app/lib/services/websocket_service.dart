@@ -35,6 +35,23 @@ class WebSocketService {
         final decoded = jsonDecode(data);
         if (decoded["type"] == "receiveChat") {
           onMessage(decoded["message"]);
+        } else if (decoded["type"] == "changeMessageType") {
+          final msgId = decoded["msgId"];
+          final deleteType = decoded["deleteType"];
+          onMessage({
+            "type": "change",
+            "msgId": msgId,
+            "deleteType": deleteType,
+          });
+        } else if (decoded["type"] == "ok" && decoded["originalType"] == "sendChat") {
+          final msgPayload = decoded["messagePayload"];
+          onMessage({
+            "messageId": msgPayload["messageId"],
+            "userId": userId,
+            "content": msgPayload["content"],
+            "timestamp": DateTime.now().toIso8601String(),
+            "deleteReason": null,
+          });
         }
       });
     } catch (e) {
