@@ -4,6 +4,7 @@ import 'contact_screen.dart';
 import 'profile_screen.dart';
 import 'setting_screen.dart';
 import 'package:chating_app/data/user.dart';
+import 'search_user_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final ObjectUser user;
@@ -27,22 +28,33 @@ class _MainScreenState extends State<MainScreen> {
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: TextField(
-          decoration: InputDecoration(
-            hintText: "Search message, people",
-            prefixIcon: const Icon(Icons.search),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide.none,
+        appBar: AppBar(
+          title: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => SearchUserScreen(),
+                ),
+              );
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.search, color: Colors.grey),
+                  SizedBox(width: 10),
+                  Text("Tìm kiếm người dùng...", style: TextStyle(color: Colors.grey)),
+                ],
+              ),
             ),
-            fillColor: Colors.grey[200],
-            filled: true,
           ),
+          backgroundColor: Colors.blue,
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
       body: screens[currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
