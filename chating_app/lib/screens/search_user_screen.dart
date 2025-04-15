@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+<<<<<<< Updated upstream
 import 'package:shared_preferences/shared_preferences.dart';
+=======
+
+>>>>>>> Stashed changes
 
 class SearchUserScreen extends StatefulWidget {
   @override
@@ -11,6 +15,7 @@ class SearchUserScreen extends StatefulWidget {
 class _SearchUserScreenState extends State<SearchUserScreen> {
   final TextEditingController _phoneController = TextEditingController();
   bool _isLoading = false;
+<<<<<<< Updated upstream
   int currentUserID = 4285; // TODO: Lấy ID từ Auth/Provider
   List<Map<String, dynamic>> searchHistory = [];
 
@@ -41,6 +46,9 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
     final encoded = searchHistory.map((item) => json.encode(item)).toList();
     await prefs.setStringList('searchHistory', encoded);
   }
+=======
+  int currentUserID = 1007; // TODO: Lấy ID từ Auth/Provider
+>>>>>>> Stashed changes
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
@@ -50,6 +58,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
     final phone = _phoneController.text.trim();
     if (phone.isEmpty) return;
 
+<<<<<<< Updated upstream
     // Kiểm tra xem số điện thoại có trong lịch sử không
     final index = searchHistory.indexWhere((item) => item['phone'] == phone);
     if (index != -1) { // Nếu đã có trong lịch sử, hiển thị dialog
@@ -63,10 +72,17 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
     try {
       final response = await http.get(
         Uri.parse("http://138.2.106.32/user/account?phone=$phone"),
+=======
+    setState(() => _isLoading = true);
+    try {
+      final response = await http.get(
+          Uri.parse("http://138.2.106.32/user/account?phone=$phone")
+>>>>>>> Stashed changes
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+<<<<<<< Updated upstream
         if (data != null && data.isNotEmpty) {
           final user = data[0];
 
@@ -82,6 +98,12 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
           await _saveSearchHistory();
 
           _showUserDialog(user);
+=======
+        if (data != null && data.length > 0) {
+          _showUserDialog(data[0]);
+        } else {
+          _showMessage("Không tìm thấy người dùng");
+>>>>>>> Stashed changes
         }
       } else {
         _showMessage("Lỗi khi tìm kiếm");
@@ -111,8 +133,12 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
             ElevatedButton(
               onPressed: () {
                 _sendFriendRequest(user['id']);
+<<<<<<< Updated upstream
                 Navigator.of(context, rootNavigator: true).pop();
                 _phoneController.clear(); // Clear ô nhập
+=======
+                Navigator.pop(context);
+>>>>>>> Stashed changes
               },
               child: Text("Kết bạn"),
             ),
@@ -120,10 +146,14 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         ),
         actions: [
           TextButton(
+<<<<<<< Updated upstream
             onPressed: () {
               Navigator.of(context, rootNavigator: true).pop();
               _phoneController.clear(); // Clear ô nhập khi đóng dialog
             },
+=======
+            onPressed: () => Navigator.pop(context),
+>>>>>>> Stashed changes
             child: Text("Đóng"),
           ),
         ],
@@ -134,7 +164,11 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
   Future<void> _sendFriendRequest(int receiverId) async {
     try {
       final response = await http.post(
+<<<<<<< Updated upstream
         Uri.parse("http://138.2.106.32/friend/request"),
+=======
+        Uri.parse("https://your-api-url.com/friend/request"),
+>>>>>>> Stashed changes
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           "senderId": currentUserID,
@@ -153,6 +187,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
     }
   }
 
+<<<<<<< Updated upstream
   Future<void> _deleteHistoryAt(int index) async {
     setState(() {
       searchHistory.removeAt(index);
@@ -160,6 +195,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
     await _saveSearchHistory();
   }
 
+=======
+>>>>>>> Stashed changes
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -179,6 +216,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
             SizedBox(height: 16),
             _isLoading
                 ? CircularProgressIndicator()
+<<<<<<< Updated upstream
                 : Expanded(
               child: searchHistory.isEmpty
                   ? Center(child: Text("Chưa có lịch sử tìm kiếm"))
@@ -224,6 +262,11 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                   ),
                 ],
               ),
+=======
+                : ElevatedButton(
+              onPressed: _searchUser,
+              child: Text("Tìm kiếm"),
+>>>>>>> Stashed changes
             ),
           ],
         ),
