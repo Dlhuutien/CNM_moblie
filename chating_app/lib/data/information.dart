@@ -5,8 +5,7 @@ import 'package:http/http.dart' as http;
 import 'user.dart';
 
 class ApiService {
-  static Future<ObjectUser?> login(
-      BuildContext context, String phone, String password) async {
+  static Future<ObjectUser?> login(BuildContext context, String phone, String password) async {
     try {
       final url = Uri.parse("http://138.2.106.32/user/login");
       final res = await http.post(
@@ -17,7 +16,7 @@ class ApiService {
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
-        ObjectUser userData = ObjectUser(
+        return ObjectUser(
           userID: data['id'].toString(),
           soDienThoai: data['phone'] ?? "",
           matKhau: data["password"] ?? "",
@@ -29,93 +28,74 @@ class ApiService {
           image: data["image"] ?? "",
           location: data["location"] ?? "",
         );
-
-        return userData;
       } else {
         final data = jsonDecode(res.body);
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: Text("Lỗi"),
-            content: Text(data['message']),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text("OK"),
-              )
-            ],
-          ),
-        );
+        _showErrorDialog(context, data['message']);
         return null;
       }
     } catch (e) {
       print("Error logging in: $e");
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text("Lỗi"),
-          content: Text("Đăng nhập thất bại. Vui lòng thử lại."),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("OK"),
-            )
-          ],
-        ),
-      );
+      _showErrorDialog(context, "Đăng nhập thất bại. Vui lòng thử lại.");
       return null;
     }
+  }
+
+  static void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Lỗi"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
 }
 
 class ApiServiceSignUp {
-  static Future<void> register(
-      BuildContext context, String name, String phone, String password) async {
+  /// Trả về `true` nếu đăng ký thành công, `false` nếu thất bại
+  static Future<bool> register(BuildContext context, String name, String phone, String password) async {
     try {
-      final url = Uri.parse("http://138.2.106.32/user/signup"); // URL thật
+      final url = Uri.parse("http://138.2.106.32/user/signup");
       final res = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'name': name, 'phone': phone, 'password': password}),
       );
 
-      if (res.statusCode == 200) {
-        // Đăng ký thành công
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Đăng ký thành công!')),
-        );
-        Navigator.pushReplacementNamed(context, '/login');
+      final data = jsonDecode(res.body);
+
+      if (res.statusCode == 200 && data['ok'] == 1) {
+        return true;
       } else {
-        final data = jsonDecode(res.body);
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: Text("Lỗi"),
-            content: Text(data['message']),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text("OK"),
-              ),
-            ],
-          ),
-        );
+        _showErrorDialog(context, data['message'] ?? 'Đăng ký thất bại');
+        return false;
       }
     } catch (e) {
       print("Error registering: $e");
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text("Lỗi"),
-          content: Text("Đăng ký thất bại. Vui lòng thử lại."),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("OK"),
-            ),
-          ],
-        ),
-      );
+      _showErrorDialog(context, "Đăng ký thất bại. Vui lòng thử lại.");
+      return false;
     }
+  }
+
+  static void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Lỗi"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
 }
