@@ -1,7 +1,6 @@
 import 'package:chating_app/services/chat_api.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 
 class ChatProfileScreen extends StatefulWidget {
   final String chatId;
@@ -16,6 +15,8 @@ class ChatProfileScreen extends StatefulWidget {
 class _ChatProfileScreenState extends State<ChatProfileScreen> {
   Map<String, dynamic>? partnerInfo;
   List<String> imageUrls = [];
+  List<Map<String, dynamic>> fileMessages = [];
+  List<Map<String, dynamic>> linkMessages = [];
 
   @override
   void initState() {
@@ -28,28 +29,43 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
   Future<void> _loadData() async {
     try {
       final partner = await ChatApi.loadPartnerInfo(widget.chatId, widget.userId);
-      final messages = await _loadChatMessages();
+      final messages = await ChatApi.fetchMessages(widget.chatId, widget.userId);
+
+      final images = <String>[];
+      final files = <Map<String, dynamic>>[];
+      final links = <Map<String, dynamic>>[];
+
+      for (var msg in messages) {
+        final isDeleted = msg['deleteReason'] == 'unsent' ||
+            (msg['deleteReason'] == 'remove' && msg['userId'].toString() == widget.userId);
+        if (isDeleted) continue;
+
+        final url = msg['attachmentUrl']?.toString() ?? '';
+        final content = msg['content']?.toString() ?? '';
+
+        if (msg['type'] == 'attachment' && url.isNotEmpty) {
+          final ext = url.split('.').last.toLowerCase();
+          if (["jpg", "jpeg", "png", "gif", "webp"].contains(ext)) {
+            images.add(url);
+          } else {
+            files.add(msg);
+          }
+        }
+
+        if (RegExp(r'https?:\/\/').hasMatch(content)) {
+          links.add(msg);
+        }
+      }
 
       setState(() {
         partnerInfo = partner;
-        imageUrls = messages
-            .where((msg) => msg['type'] == 'attachment' && msg['attachmentUrl'] != null)
-            .map<String>((msg) => msg['attachmentUrl'] as String)
-            .toList();
+        imageUrls = images;
+        fileMessages = files;
+        linkMessages = links;
       });
     } catch (e) {
       print("Lỗi khi load dữ liệu profile: $e");
     }
-  }
-
-  Future<List<dynamic>> _loadChatMessages() async {
-    final historyUrl = Uri.parse("http://138.2.106.32/chat/${widget.chatId}/history/50?userId=${widget.userId}");
-    final res = await http.get(historyUrl);
-    if (res.statusCode == 200) {
-      final data = jsonDecode(res.body);
-      return data['data'] as List<dynamic>;
-    }
-    return [];
   }
 
   @override
@@ -67,58 +83,23 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text("Profile"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.call),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.push_pin),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CircleAvatar(
               radius: 50,
               backgroundImage: NetworkImage(partnerInfo!['imageUrl'] ?? ''),
             ),
             const SizedBox(height: 10),
-            Text(
-              partnerInfo!['name'] ?? 'No name',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
+            Text(partnerInfo!['name'] ?? 'No name', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
-            Text(
-              partnerInfo!['email'] ?? 'No email',
-              style: const TextStyle(color: Colors.grey),
-            ),
+            Text(partnerInfo!['email'] ?? 'No email', style: const TextStyle(color: Colors.grey)),
             const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.phone),
-              title: Text(partnerInfo!['phone'] ?? 'No phone'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.location_on),
-              title: Text(partnerInfo!['location'] ?? 'No location'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.group_add),
-              title: const Text("Create group"),
-            ),
-            const ListTile(
-              leading: Icon(Icons.block, color: Colors.red),
-              title: Text("Block", style: TextStyle(color: Colors.red)),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Shared Images",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+
+            const Text("Shared Images", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             GridView.builder(
               shrinkWrap: true,
@@ -130,27 +111,51 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
               ),
               itemCount: imageUrls.length,
               itemBuilder: (context, index) {
-                return Image.network(
-                  imageUrls[index],
-                  fit: BoxFit.cover,
-                );
+                return Image.network(imageUrls[index], fit: BoxFit.cover);
               },
             ),
+
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text("Links", style: TextStyle(fontSize: 16)),
-                Icon(Icons.add),
-              ],
+            const Text("Shared Links", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Column(
+              children: linkMessages.map((msg) {
+                final content = msg['content'] ?? '';
+                final match = RegExp(r'https?:\/\/[^\s]+').firstMatch(content);
+                final url = match?.group(0);
+                return url != null
+                    ? ListTile(
+                  leading: const Icon(Icons.link, color: Colors.blue),
+                  title: Text(url, style: const TextStyle(color: Colors.blue)),
+                  onTap: () async {
+                    final uri = Uri.tryParse(url);
+                    if (uri != null && await canLaunchUrl(uri)) {
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    }
+                  },
+                )
+                    : const SizedBox.shrink();
+              }).toList(),
             ),
-            const Divider(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text("Files", style: TextStyle(fontSize: 16)),
-                Icon(Icons.add),
-              ],
+
+            const SizedBox(height: 20),
+            const Text("Shared Files", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Column(
+              children: fileMessages.map((msg) {
+                final url = msg['attachmentUrl'];
+                final fileName = Uri.parse(url).pathSegments.last;
+                return ListTile(
+                  leading: const Icon(Icons.attach_file, color: Colors.grey),
+                  title: Text(fileName, overflow: TextOverflow.ellipsis),
+                  onTap: () async {
+                    final uri = Uri.tryParse(url);
+                    if (uri != null && await canLaunchUrl(uri)) {
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    }
+                  },
+                );
+              }).toList(),
             ),
           ],
         ),

@@ -11,7 +11,6 @@ import 'package:chating_app/widgets/message_card.dart';
 import 'package:chating_app/services/chat_api.dart';
 import 'package:image_picker/image_picker.dart';
 
-
 class ChatDetailScreen extends StatefulWidget {
   final String name;
   final String chatId;
@@ -138,23 +137,59 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
   }
 
   Future<void> _pickFile() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.image),
+              title: const Text("Chọn ảnh từ thư viện"),
+              onTap: () => Navigator.pop(context, 'image'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.attach_file),
+              title: const Text("Chọn tệp từ thiết bị"),
+              onTap: () => Navigator.pop(context, 'file'),
+            ),
+          ],
+        ),
+      ),
+    );
 
-    if (pickedFile != null) {
-      final uploadedUrl = await ChatApi.uploadImage(pickedFile);
-      if (uploadedUrl != null) {
-        _webSocketService?.sendMessageWithAttachment(
-          content: "Đã gửi một ảnh",
-          attachmentUrl: uploadedUrl,
-        );
-      } else {
-        print("Lỗi khi upload ảnh");
+    if (selected == 'image') {
+      final XFile? pickedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (pickedImage != null) {
+        final url = await ChatApi.uploadImage(pickedImage);
+        if (url != null) {
+          _webSocketService?.sendMessageWithAttachment(
+            content: "Đã gửi một ảnh",
+            attachmentUrl: url,
+          );
+        }
       }
-    } else {
-      print("Đã hủy chọn ảnh");
+    } else if (selected == 'file') {
+      final result = await FilePicker.platform.pickFiles();
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        final filePath = file.path;
+        final fileName = file.name;
+
+        if (filePath != null) {
+          final uploaded = await ChatApi.uploadFile(filePath, fileName);
+          if (uploaded != null) {
+            final ext = fileName.split('.').last.toLowerCase();
+            final isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext);
+            _webSocketService?.sendMessageWithAttachment(
+              content: isImage ? "Đã gửi một ảnh" : "Đã gửi một tệp tin: ${file.name}",
+              attachmentUrl: uploaded['url']!,
+            );
+          }
+        }
+      }
     }
   }
+
 
   Future<void> _initializeRecorder() async {
     var status = await Permission.microphone.request();

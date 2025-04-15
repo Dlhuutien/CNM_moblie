@@ -1,7 +1,7 @@
 extension ObjectUserExtension on ObjectUser {
-
   ObjectUser copyWithField(String field, String value) {
     switch (field) {
+      case 'name': return copyWith(hoTen: value);
       case 'phone': return copyWith(soDienThoai: value);
       case 'gender': return copyWith(gender: value);
       case 'birthday': return copyWith(birthday: value);
