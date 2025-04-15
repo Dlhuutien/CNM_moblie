@@ -1,14 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
-
 import 'chat_profile_screen.dart';
 import 'package:chating_app/services/websocket_service.dart';
 import 'package:chating_app/widgets/message_card.dart';
 import 'package:chating_app/services/chat_api.dart';
+import 'package:image_picker/image_picker.dart';
 
 
 class ChatDetailScreen extends StatefulWidget {
@@ -103,8 +104,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     if (iso == null || iso.isEmpty) return "";
     final dt = DateTime.tryParse(iso);
     if (dt == null) return "";
-    return "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+
+    // Chuyển từ UTC -> Local (client device)
+    final localTime = dt.toLocal();
+
+    return "${localTime.hour.toString().padLeft(2, '0')}:${localTime.minute.toString().padLeft(2, '0')}";
   }
+
 
   void _sendMessage() {
     final content = _messageController.text.trim();
@@ -132,18 +138,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
   }
 
   Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'pdf', 'doc'],
-    );
-    if (result != null) {
-      String filePath = result.files.single.path!;
-      setState(() {
-        _selectedFile = filePath;
-      });
-      print("Selected file: $filePath");
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      final uploadedUrl = await ChatApi.uploadImage(pickedFile);
+      if (uploadedUrl != null) {
+        _webSocketService?.sendMessageWithAttachment(
+          content: "Đã gửi một ảnh",
+          attachmentUrl: uploadedUrl,
+        );
+      } else {
+        print("Lỗi khi upload ảnh");
+      }
     } else {
-      print("File selection canceled");
+      print("Đã hủy chọn ảnh");
     }
   }
 

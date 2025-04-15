@@ -30,12 +30,40 @@ class WebSocketService {
         "chatId": chatId,
       }));
 
+      print("Đã gửi joinChat với chatId: $chatId");
+
       // Lắng nghe tin nhắn từ server
       _socket?.listen((data) {
         final decoded = jsonDecode(data);
+
+        print("📦 raw data: ${jsonEncode(decoded)}");
+
+        final type = decoded['type'];
+        print("Type nhận được từ server: $type");
+        print("Đã nhận được receiveChat: ${jsonEncode(decoded)}");
         if (decoded["type"] == "receiveChat") {
-          onMessage(decoded["message"]);
-        } else if (decoded["type"] == "changeMessageType") {
+          print("receiveChat full: ${jsonEncode(decoded)}");
+
+          final msg = decoded["message"];
+          final incomingChatId = decoded["chatId"] ?? msg["chatId"];
+
+          print("Nhận được message từ chatId: $incomingChatId, hiện tại: $chatId");
+
+          if (incomingChatId == chatId) {
+            onMessage({
+              "messageId": msg["messageId"],
+              "userId": msg["senderId"],
+              "content": msg["content"],
+              "type": msg["type"],
+              "attachmentUrl": msg["attachmentUrl"],
+              "timestamp": msg["timestamp"],
+              "senderName": msg["senderName"],
+              "senderImage": msg["senderImage"],
+              "deleteReason": msg["deleteReason"],
+            });
+          }
+        }
+        else if (decoded["type"] == "changeMessageType") {
           final msgId = decoded["msgId"];
           final deleteType = decoded["deleteType"];
           onMessage({
@@ -49,11 +77,13 @@ class WebSocketService {
             "messageId": msgPayload["messageId"],
             "userId": userId,
             "content": msgPayload["content"],
-            "timestamp": DateTime.now().toIso8601String(),
+            "attachmentUrl": msgPayload["attachmentUrl"],
+            "timestamp": msgPayload["timestamp"],
             "deleteReason": null,
           });
         }
       });
+
     } catch (e) {
       print("WebSocket connection error: $e");
     }
@@ -80,6 +110,33 @@ class WebSocketService {
       print("Lỗi khi gửi message: $e");
     }
   }
+
+  void sendMessageWithAttachment({
+    required String content,
+    required String attachmentUrl,
+  }) {
+    if (_socket == null) {
+      print("Socket chưa được khởi tạo.");
+      return;
+    }
+
+    final message = {
+      "type": "sendChat",
+      "chatId": chatId,
+      "messagePayload": {
+        "type": "attachment",
+        "content": content,
+        "attachmentUrl": attachmentUrl,
+      },
+    };
+
+    try {
+      _socket!.add(jsonEncode(message));
+    } catch (e) {
+      print("Lỗi khi gửi message đính kèm: $e");
+    }
+  }
+
 
 
   void close() {

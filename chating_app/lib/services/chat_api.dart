@@ -1,5 +1,9 @@
-import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 
 class ChatApi {
   static const String baseUrl = "http://138.2.106.32";
@@ -65,8 +69,42 @@ class ChatApi {
     }
   }
 
+  //Upload file
+  static Future<String?> uploadImage(XFile file) async {
+    final url = Uri.parse('$baseUrl/user/upload');
+    final request = http.MultipartRequest('POST', url);
 
-  //Xóa tin nhắn
+    // Đồng bộ mime với backend
+    final mimeType = lookupMimeType(file.path);
+
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        file.path,
+        contentType: mimeType != null ? MediaType.parse(mimeType) : null,
+        filename: "img_${DateTime.now().millisecondsSinceEpoch}.${file.path.split(".").last}",
+      ),
+    );
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['ok'] == 1) {
+        return data['imageUrl'];
+      } else {
+        print("Lỗi từ server: ${data['message']}");
+        return null;
+      }
+    } else {
+      print("Lỗi upload ảnh: ${response.body}");
+      return null;
+    }
+  }
+
+
+//Xóa tin nhắn
   static Future<bool> deleteMessage(String messageId, String deleteType) async {
     final url = Uri.parse("$baseUrl/chat/deleteMsg")
         .replace(queryParameters: {
