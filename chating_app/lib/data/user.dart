@@ -1,4 +1,5 @@
 extension ObjectUserExtension on ObjectUser {
+
   ObjectUser copyWithField(String field, String value) {
     switch (field) {
       case 'phone': return copyWith(soDienThoai: value);
