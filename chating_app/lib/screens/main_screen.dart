@@ -20,9 +20,8 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> screens = [
-      // const ChatScreen(),
       ChatScreen(user: widget.user),
-      const ContactScreen(),
+      ContactScreen(user: widget.user),
       ProfileScreen(user: widget.user),
       const SettingsScreen()
     ];
@@ -34,7 +33,7 @@ class _MainScreenState extends State<MainScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => SearchUserScreen(),
+                  builder: (_) => SearchUserScreen(user: widget.user),
                 ),
               );
             },
@@ -47,8 +46,14 @@ class _MainScreenState extends State<MainScreen> {
               child: Row(
                 children: [
                   Icon(Icons.search, color: Colors.grey),
-                  SizedBox(width: 10),
-                  Text("Tìm kiếm người dùng...", style: TextStyle(color: Colors.grey)),
+                  SizedBox(width: 5),
+                  Flexible(
+                    child: Text(
+                      "Tìm kiếm người dùng...",
+                      style: TextStyle(color: Colors.grey),
+                      overflow: TextOverflow.ellipsis, // Giúp tránh tràn nếu dài
+                    ),
+                  ),
                 ],
               ),
             ),

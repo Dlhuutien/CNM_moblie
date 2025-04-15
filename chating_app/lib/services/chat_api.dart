@@ -69,6 +69,41 @@ class ChatApi {
     }
   }
 
+  static Future<Map<String, String>?> uploadFile(String filePath, String fileName) async {
+    final url = Uri.parse('$baseUrl/user/upload');
+    final mimeType = lookupMimeType(filePath);
+    final request = http.MultipartRequest('POST', url);
+
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        filePath,
+        contentType: mimeType != null ? MediaType.parse(mimeType) : null,
+        filename: fileName,
+      ),
+    );
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['ok'] == 1) {
+        return {
+          "url": data['imageUrl'],
+          "name": fileName,
+        };
+      } else {
+        print("Lỗi từ server: ${data['message']}");
+      }
+    } else {
+      print("Lỗi upload file: ${response.body}");
+    }
+
+    return null;
+  }
+
+
   //Upload file
   static Future<String?> uploadImage(XFile file) async {
     final url = Uri.parse('$baseUrl/user/upload');

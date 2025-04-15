@@ -156,6 +156,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return;
         }
 
+        if (fieldName == 'name' &&
+            !RegExp(r"^([A-ZÀ-Ỵ][a-zà-ỵ]+)( [A-ZÀ-Ỵ][a-zà-ỵ]+)*$", unicode: true)
+                .hasMatch(newValue.trim())) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Tên phải viết hoa chữ cái đầu và không chứa ký tự đặc biệt")),
+          );
+          return;
+        }
+
         await updateUserField(fieldName, newValue);
       }
 
@@ -169,15 +178,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          Row(
-            children: [
-              Text(value),
-              const SizedBox(width: 10),
-              IconButton(
-                icon: const Icon(Icons.edit, size: 18, color: Colors.blueAccent),
-                onPressed: () => _editField(fieldKey, label, value),
-              ),
-            ],
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Text(
+                    value,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                IconButton(
+                  icon: const Icon(Icons.edit, size: 18, color: Colors.blueAccent),
+                  onPressed: () => _editField(fieldKey, label, value),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -237,6 +256,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _buildInfoRow('Name:', 'name', _editableUser.hoTen),
                   _buildInfoRow('Phone:', 'phone', _editableUser.soDienThoai),
                   _buildInfoRow('Gender:', 'gender', _editableUser.gender),
                   _buildInfoRow('Birthday:', 'birthday', _formatDateOnly(_editableUser.birthday)),
