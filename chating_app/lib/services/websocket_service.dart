@@ -36,7 +36,7 @@ class WebSocketService {
       _socket?.listen((data) {
         final decoded = jsonDecode(data);
 
-        print("📦 raw data: ${jsonEncode(decoded)}");
+        print("Raw data: ${jsonEncode(decoded)}");
 
         final type = decoded['type'];
         print("Type nhận được từ server: $type");
