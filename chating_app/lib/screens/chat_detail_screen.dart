@@ -317,6 +317,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                         controller: _messageController,
                         decoration: InputDecoration(
                           hintText: "Type a message...",
+                          hintStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),

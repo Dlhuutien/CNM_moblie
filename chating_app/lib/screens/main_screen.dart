@@ -50,8 +50,8 @@ class _MainScreenState extends State<MainScreen> {
                   Flexible(
                     child: Text(
                       "Tìm kiếm người dùng...",
-                      style: TextStyle(color: Colors.grey),
-                      overflow: TextOverflow.ellipsis, // Giúp tránh tràn nếu dài
+                      style: TextStyle(color: Colors.grey, fontSize: 10),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
