@@ -83,24 +83,55 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text("Profile"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.call),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.push_pin),
+            onPressed: () {},
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             CircleAvatar(
               radius: 50,
               backgroundImage: NetworkImage(partnerInfo!['imageUrl'] ?? ''),
             ),
             const SizedBox(height: 10),
-            Text(partnerInfo!['name'] ?? 'No name', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            Text(
+              partnerInfo!['name'] ?? 'No name',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 10),
-            Text(partnerInfo!['email'] ?? 'No email', style: const TextStyle(color: Colors.grey)),
+            Text(
+              partnerInfo!['email'] ?? 'No email',
+              style: const TextStyle(color: Colors.grey),
+            ),
             const SizedBox(height: 20),
-
-            const Text("Shared Images", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ListTile(
+              leading: const Icon(Icons.phone),
+              title: Text(partnerInfo!['phone'] ?? 'No phone'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.location_on),
+              title: Text(partnerInfo!['location'] ?? 'No location'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.group_add),
+              title: const Text("Create group"),
+            ),
+            const ListTile(
+              leading: Icon(Icons.block, color: Colors.red),
+              title: Text("Block", style: TextStyle(color: Colors.red)),
+            ),
             const SizedBox(height: 10),
+            const Text("Shared Images", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
