@@ -27,39 +27,39 @@ class _MainScreenState extends State<MainScreen> {
     ];
 
     return Scaffold(
-        appBar: AppBar(
-          title: GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => SearchUserScreen(user: widget.user),
-                ),
-              );
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
+      appBar: AppBar(
+        title: GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => SearchUserScreen(user: widget.user),
               ),
-              child: Row(
-                children: [
-                  Icon(Icons.search, color: Colors.grey),
-                  SizedBox(width: 5),
-                  Flexible(
-                    child: Text(
-                      "Tìm kiếm người dùng...",
-                      style: TextStyle(color: Colors.grey, fontSize: 10),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+            );
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.search, color: Colors.grey),
+                SizedBox(width: 5),
+                Flexible(
+                  child: Text(
+                    "Tìm kiếm người dùng...",
+                    style: TextStyle(color: Colors.grey, fontSize: 10),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          backgroundColor: Colors.blue,
         ),
+        backgroundColor: Colors.blue,
+      ),
       body: screens[currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
@@ -71,8 +71,10 @@ class _MainScreenState extends State<MainScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.chat), label: "Chat"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Contacts"),
-          BottomNavigationBarItem(icon: Icon(Icons.account_circle), label: "Profile"),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle), label: "Profile"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: "Settings"),
         ],
         backgroundColor: Colors.white,
         selectedItemColor: Colors.blue,

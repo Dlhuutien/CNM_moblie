@@ -6,7 +6,8 @@ class ChatProfileScreen extends StatefulWidget {
   final String chatId;
   final String userId;
 
-  const ChatProfileScreen({super.key, required this.chatId, required this.userId});
+  const ChatProfileScreen(
+      {super.key, required this.chatId, required this.userId});
 
   @override
   State<ChatProfileScreen> createState() => _ChatProfileScreenState();
@@ -28,8 +29,10 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
 
   Future<void> _loadData() async {
     try {
-      final partner = await ChatApi.loadPartnerInfo(widget.chatId, widget.userId);
-      final messages = await ChatApi.fetchMessages(widget.chatId, widget.userId);
+      final partner =
+          await ChatApi.loadPartnerInfo(widget.chatId, widget.userId);
+      final messages =
+          await ChatApi.fetchMessages(widget.chatId, widget.userId);
 
       final images = <String>[];
       final files = <Map<String, dynamic>>[];
@@ -37,7 +40,8 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
 
       for (var msg in messages) {
         final isDeleted = msg['deleteReason'] == 'unsent' ||
-            (msg['deleteReason'] == 'remove' && msg['userId'].toString() == widget.userId);
+            (msg['deleteReason'] == 'remove' &&
+                msg['userId'].toString() == widget.userId);
         if (isDeleted) continue;
 
         final url = msg['attachmentUrl']?.toString() ?? '';
@@ -131,7 +135,8 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
               title: Text("Block", style: TextStyle(color: Colors.red)),
             ),
             const SizedBox(height: 10),
-            const Text("Shared Images", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text("Shared Images",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -145,9 +150,9 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
                 return Image.network(imageUrls[index], fit: BoxFit.cover);
               },
             ),
-
             const SizedBox(height: 20),
-            const Text("Shared Links", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text("Shared Links",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             Column(
               children: linkMessages.map((msg) {
@@ -156,21 +161,23 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
                 final url = match?.group(0);
                 return url != null
                     ? ListTile(
-                  leading: const Icon(Icons.link, color: Colors.blue),
-                  title: Text(url, style: const TextStyle(color: Colors.blue)),
-                  onTap: () async {
-                    final uri = Uri.tryParse(url);
-                    if (uri != null && await canLaunchUrl(uri)) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
-                    }
-                  },
-                )
+                        leading: const Icon(Icons.link, color: Colors.blue),
+                        title: Text(url,
+                            style: const TextStyle(color: Colors.blue)),
+                        onTap: () async {
+                          final uri = Uri.tryParse(url);
+                          if (uri != null && await canLaunchUrl(uri)) {
+                            await launchUrl(uri,
+                                mode: LaunchMode.externalApplication);
+                          }
+                        },
+                      )
                     : const SizedBox.shrink();
               }).toList(),
             ),
-
             const SizedBox(height: 20),
-            const Text("Shared Files", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text("Shared Files",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             Column(
               children: fileMessages.map((msg) {
@@ -182,7 +189,8 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
                   onTap: () async {
                     final uri = Uri.tryParse(url);
                     if (uri != null && await canLaunchUrl(uri)) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      await launchUrl(uri,
+                          mode: LaunchMode.externalApplication);
                     }
                   },
                 );

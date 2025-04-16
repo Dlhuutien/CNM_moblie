@@ -50,7 +50,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _searchUser() async {
@@ -61,7 +62,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse("http://138.2.106.32/contact/find?phone=$phone&userId=$currentUserID"),
+        Uri.parse(
+            "http://138.2.106.32/contact/find?phone=$phone&userId=$currentUserID"),
       );
 
       if (response.statusCode == 200) {
@@ -94,7 +96,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (user['imageUrl'] != null)
-              CircleAvatar(radius: 40, backgroundImage: NetworkImage(user['imageUrl'])),
+              CircleAvatar(
+                  radius: 40, backgroundImage: NetworkImage(user['imageUrl'])),
             SizedBox(height: 10),
             Text("Tên: ${user['name']}"),
             Text("SĐT: ${user['phone']}"),
@@ -112,7 +115,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
             else if (user['friend'])
               Text("Đã là bạn bè", style: TextStyle(color: Colors.green))
             else if (user['friendRequestSent'])
-                Text("Đã gửi lời mời", style: TextStyle(color: Colors.orange)),
+              Text("Đã gửi lời mời", style: TextStyle(color: Colors.orange)),
           ],
         ),
         actions: [
@@ -131,7 +134,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
   Future<void> _sendFriendRequest(int contactId) async {
     try {
       final response = await http.post(
-        Uri.parse("http://138.2.106.32/contact/add?userId=$currentUserID&contactId=$contactId"),
+        Uri.parse(
+            "http://138.2.106.32/contact/add?userId=$currentUserID&contactId=$contactId"),
       );
       final res = json.decode(response.body);
       _showMessage(res['message'] ?? "Đã gửi lời mời kết bạn");
@@ -167,49 +171,57 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
             _isLoading
                 ? CircularProgressIndicator()
                 : Expanded(
-              child: searchHistory.isEmpty
-                  ? Center(child: Text("Chưa có lịch sử tìm kiếm"))
-                  : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Lịch sử tìm kiếm",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: searchHistory.length,
-                      itemBuilder: (context, index) {
-                        final user = searchHistory[index];
-                        return Card(
-                          child: ListTile(
-                            leading: user['imageUrl'] != null
-                                ? CircleAvatar(backgroundImage: NetworkImage(user['imageUrl']))
-                                : CircleAvatar(child: Icon(Icons.person)),
-                            title: Text(user['name'] ?? 'Không tên'),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("SĐT: ${user['phone']}"),
-                                Text("Email: ${user['email'] ?? "-"}"),
-                              ],
-                            ),
-                            trailing: IconButton(
-                              icon: Icon(Icons.delete, color: Colors.red),
-                              onPressed: () {
-                                _deleteHistoryAt(index);
-                              },
-                            ),
-                            onTap: () => _showUserDialog(user),
+                    child: searchHistory.isEmpty
+                        ? Center(child: Text("Chưa có lịch sử tìm kiếm"))
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Lịch sử tìm kiếm",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 10),
+                              Expanded(
+                                child: ListView.builder(
+                                  itemCount: searchHistory.length,
+                                  itemBuilder: (context, index) {
+                                    final user = searchHistory[index];
+                                    return Card(
+                                      child: ListTile(
+                                        leading: user['imageUrl'] != null
+                                            ? CircleAvatar(
+                                                backgroundImage: NetworkImage(
+                                                    user['imageUrl']))
+                                            : CircleAvatar(
+                                                child: Icon(Icons.person)),
+                                        title:
+                                            Text(user['name'] ?? 'Không tên'),
+                                        subtitle: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text("SĐT: ${user['phone']}"),
+                                            Text(
+                                                "Email: ${user['email'] ?? "-"}"),
+                                          ],
+                                        ),
+                                        trailing: IconButton(
+                                          icon: Icon(Icons.delete,
+                                              color: Colors.red),
+                                          onPressed: () {
+                                            _deleteHistoryAt(index);
+                                          },
+                                        ),
+                                        onTap: () => _showUserDialog(user),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                    ),
                   ),
-                ],
-              ),
-            ),
           ],
         ),
       ),
