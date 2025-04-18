@@ -23,7 +23,7 @@ class _MainScreenState extends State<MainScreen> {
       ChatScreen(user: widget.user),
       ContactScreen(user: widget.user),
       ProfileScreen(user: widget.user),
-      const SettingsScreen()
+      SettingsScreen(user: widget.user),
     ];
 
     return Scaffold(
