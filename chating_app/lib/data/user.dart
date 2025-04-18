@@ -9,6 +9,7 @@ extension ObjectUserExtension on ObjectUser {
       case 'work': return copyWith(work: value);
       case 'location': return copyWith(location: value);
       case 'image': return copyWith(image: value);
+      case 'password': return copyWith(password: value);
       default: return this;
     }
   }
@@ -24,11 +25,11 @@ extension ObjectUserExtension on ObjectUser {
     String? work,
     String? image,
     String? location,
+    String? password,
   }) {
     return ObjectUser(
       userID: userID ?? this.userID,
       soDienThoai: soDienThoai ?? this.soDienThoai,
-      matKhau: matKhau ?? this.matKhau,
       hoTen: hoTen ?? this.hoTen,
       gender: gender ?? this.gender,
       birthday: birthday ?? this.birthday,
@@ -36,6 +37,7 @@ extension ObjectUserExtension on ObjectUser {
       work: work ?? this.work,
       image: image ?? this.image,
       location: location ?? this.location,
+      password: password ?? this.password,
     );
   }
 }
@@ -43,7 +45,6 @@ extension ObjectUserExtension on ObjectUser {
 class ObjectUser {
   final String userID;
   final String soDienThoai;
-  final String matKhau;
   final String hoTen;
   final String gender;
   final String birthday;
@@ -51,11 +52,11 @@ class ObjectUser {
   final String work;
   final String image;
   final String location;
+  final String password;
 
   ObjectUser({
     required this.userID,
     required this.soDienThoai,
-    required this.matKhau,
     required this.hoTen,
     required this.gender,
     required this.birthday,
@@ -63,5 +64,6 @@ class ObjectUser {
     required this.work,
     required this.image,
     required this.location,
+    required this.password,
   });
 }

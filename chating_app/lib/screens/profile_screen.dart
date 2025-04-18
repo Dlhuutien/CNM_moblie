@@ -35,7 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: jsonEncode({
         "id": int.parse(updatedUser.userID),
         "name": updatedUser.hoTen,
-        "password": updatedUser.matKhau,
+        "password": updatedUser.password,
         "phone": updatedUser.soDienThoai,
         "image": updatedUser.image,
         "location": updatedUser.location,

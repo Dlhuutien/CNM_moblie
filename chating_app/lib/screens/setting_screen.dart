@@ -1,8 +1,15 @@
+import 'package:chating_app/data/user.dart';
+import 'package:chating_app/screens/chang_password_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Thêm SharedPreferences vào
+import 'login_screen.dart'; // Giả sử đây là màn hình đăng nhập của bạn
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+
+  final ObjectUser user; // thêm dòng này
+
+  const SettingsScreen({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +26,9 @@ class SettingsScreen extends StatelessWidget {
               items: ["Tieng Viet", "English"],
               onChanged: (value) {
                 if (value == "Tieng Viet") {
-                  context.setLocale(Locale('vi'));
+                  context.setLocale(const Locale('vi'));
                 } else {
-                  context.setLocale(Locale('en'));
+                  context.setLocale(const Locale('en'));
                 }
               },
             ),
@@ -35,10 +42,8 @@ class SettingsScreen extends StatelessWidget {
               items: ["Light mode", "Dark mode"],
               onChanged: (value) {
                 if (value == "Dark mode") {
-                  // Chuyển sang chế độ tối
                   _setThemeMode(context, ThemeMode.dark);
                 } else {
-                  // Chuyển sang chế độ sáng
                   _setThemeMode(context, ThemeMode.light);
                 }
               },
@@ -46,13 +51,20 @@ class SettingsScreen extends StatelessWidget {
 
             const SizedBox(height: 40),
 
-            // Change Account
+            // Change Password
             GestureDetector(
               onTap: () {
-                // Thêm logic xử lý khi nhấn vào "Change Account"
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChangePasswordScreen(
+                      phone: user.soDienThoai,
+                    ),
+                  ),
+                );
               },
               child: const Text(
-                "Change Account",
+                "Change Password",
                 style: TextStyle(
                   color: Colors.red,
                   fontSize: 16,
@@ -65,8 +77,18 @@ class SettingsScreen extends StatelessWidget {
 
             // Logout
             GestureDetector(
-              onTap: () {
-                // Thêm logic xử lý khi nhấn vào "Logout"
+              onTap: () async {
+                // Xóa dữ liệu đăng nhập (ví dụ token) khỏi SharedPreferences
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('user_token'); // Giả sử bạn lưu token dưới khóa 'user_token'
+
+                // Điều hướng về màn hình đăng nhập
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LoginScreen(), // Điều hướng về màn hình đăng nhập
+                  ),
+                );
               },
               child: const Text(
                 "Logout",
@@ -123,12 +145,6 @@ class SettingsScreen extends StatelessWidget {
 
   // Hàm để thay đổi chế độ sáng/tối
   void _setThemeMode(BuildContext context, ThemeMode themeMode) {
-    // Cập nhật trạng thái chế độ trong ứng dụng
-    final themeNotifier = Theme.of(context);
-    themeNotifier.brightness == Brightness.dark
-        ? themeMode = ThemeMode.dark
-        : themeMode = ThemeMode.light;
-
-    // Thêm logic lưu trạng thái vào SharedPreferences hoặc Provider nếu cần thiết
+    // TODO: Thêm logic cập nhật theme bằng Provider/SharedPreferences nếu dùng
   }
 }

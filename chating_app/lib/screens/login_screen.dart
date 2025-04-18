@@ -81,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ObjectUser newUser = ObjectUser(
           userID: "",
           soDienThoai: user.phoneNumber ?? '',
-          matKhau: '',
+          password: '',
           hoTen: user.displayName ?? '',
           gender: 'Nam',
           birthday: '29/08/2003',

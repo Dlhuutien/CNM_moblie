@@ -19,7 +19,7 @@ class ApiService {
         return ObjectUser(
           userID: data['id'].toString(),
           soDienThoai: data['phone'] ?? "",
-          matKhau: data["password"] ?? "",
+          password: data["password"] ?? "",
           hoTen: data["name"] ?? "",
           gender: "Nam",
           birthday: data["birthday"] ?? "",
