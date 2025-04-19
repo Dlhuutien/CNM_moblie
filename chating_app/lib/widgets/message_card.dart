@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:chating_app/widgets/full_screen_image.dart';
 
 typedef MessageActionCallback = void Function(String action, Map<String, dynamic> message);
 
@@ -113,14 +114,23 @@ class _MessageCardState extends State<MessageCard> {
     final fileExt = fileName.split('.').last.toLowerCase();
 
     if (isImage) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.network(
-          url,
-          width: 200,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) =>
-          const Text('Không thể tải ảnh'),
+      return GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => FullScreenImage(imageUrl: url),
+            ),
+          );
+        },
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            url,
+            width: 200,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => const Text('Không thể tải ảnh'),
+          ),
         ),
       );
     } else {
