@@ -1,8 +1,8 @@
+import 'package:chating_app/data/user.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:chating_app/data/user.dart';
 
 class SearchUserScreen extends StatefulWidget {
   final ObjectUser user;
@@ -18,6 +18,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
   bool _isLoading = false;
   late String currentUserID;
   List<Map<String, dynamic>> searchHistory = [];
+  List<Map<String, dynamic>> searchResult = [];
+  String _input = "";
 
   @override
   void initState() {
@@ -26,7 +28,11 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
     _loadSearchHistory();
     _phoneController.addListener(() {
       final input = _phoneController.text.trim();
-      if (input.length == 10 && RegExp(r'^\d{10}$').hasMatch(input)) {
+      setState(() => _input = input);
+      if (input.isEmpty) {
+        _loadSearchHistory();
+        setState(() => searchResult.clear());
+      } else if (input.length > 0) { //Nhập 1 chữ số sẽ tìm
         _searchUser();
       }
     });
@@ -36,10 +42,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
     final prefs = await SharedPreferences.getInstance();
     final savedData = prefs.getStringList('searchHistory') ?? [];
     setState(() {
-      searchHistory = savedData
-          .map((item) => json.decode(item))
-          .toList()
-          .cast<Map<String, dynamic>>();
+      searchHistory = savedData.map((item) => json.decode(item)).toList().cast<Map<String, dynamic>>();
     });
   }
 
@@ -50,32 +53,45 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _searchUser() async {
     final phone = _phoneController.text.trim();
     if (phone.isEmpty) return;
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      searchResult.clear();
+    });
 
     try {
       final response = await http.get(
-        Uri.parse(
-            "http://138.2.106.32/contact/find?phone=$phone&userId=$currentUserID"),
+        Uri.parse("http://138.2.106.32/contact/find?phone=$phone&userId=$currentUserID"),
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success']) {
           final List<dynamic> users = data['data'];
-          for (var user in users) {
-            searchHistory.removeWhere((item) => item['phone'] == user['phone']);
-            searchHistory.insert(0, Map<String, dynamic>.from(user));
+
+          if (phone.length == 10 && users.isNotEmpty) {
+            searchResult.add(Map<String, dynamic>.from(users.first));
+          } else {
+            searchResult = users.map((u) => Map<String, dynamic>.from(u)).toList();
           }
-          await _saveSearchHistory();
-          if (users.isNotEmpty) _showUserDialog(users[0]);
+
+          if (phone.length == 10 && users.isNotEmpty) {
+            final userMap = Map<String, dynamic>.from(users.first);
+            // Tránh thêm trùng
+            if (!searchResult.any((u) => u['phone'] == userMap['phone'])) {
+              searchResult.add(userMap);
+            }
+          } else {
+            searchResult = users.map((u) => Map<String, dynamic>.from(u)).toList();
+          }
+
+          setState(() {});
         }
       } else {
         _showMessage("Không tìm thấy người dùng.");
@@ -87,46 +103,52 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
     }
   }
 
-  void _showUserDialog(Map<String, dynamic> user) {
+  void _showUserDialog(Map<String, dynamic> user) async {
+    searchHistory.removeWhere((item) => item['phone'] == user['phone']);
+    searchHistory.insert(0, Map<String, dynamic>.from(user));
+    await _saveSearchHistory();
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Người dùng tìm thấy"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (user['imageUrl'] != null)
-              CircleAvatar(
-                  radius: 40, backgroundImage: NetworkImage(user['imageUrl'])),
-            SizedBox(height: 10),
-            Text("Tên: ${user['name']}"),
-            Text("SĐT: ${user['phone']}"),
-            Text("Email: ${user['email']}"),
-            SizedBox(height: 16),
-            if (!user['friend'] && !user['friendRequestSent'])
-              ElevatedButton(
-                onPressed: () async {
-                  await _sendFriendRequest(user['userId']);
-                  Navigator.of(context).pop();
-                  _phoneController.clear();
-                },
-                child: Text("Kết bạn"),
-              )
-            else if (user['friend'])
-              Text("Đã là bạn bè", style: TextStyle(color: Colors.green))
-            else if (user['friendRequestSent'])
-              Text("Đã gửi lời mời", style: TextStyle(color: Colors.orange)),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateDialog) => AlertDialog(
+          title: Text("Người dùng tìm thấy"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (user['imageUrl'] != null)
+                CircleAvatar(radius: 40, backgroundImage: NetworkImage(user['imageUrl'])),
+              SizedBox(height: 10),
+              Text("Tên: ${user['name']}"),
+              Text("SĐT: ${user['phone']}"),
+              Text("Email: ${user['email']}"),
+              SizedBox(height: 16),
+              if (user['friend'])
+                Text("Đã là bạn bè", style: TextStyle(color: Colors.green))
+              else if (user['friendRequestSent'])
+                Text("Đã gửi lời mời", style: TextStyle(color: Colors.orange))
+              else
+                ElevatedButton(
+                  onPressed: () async {
+                    await _sendFriendRequest(user['userId']);
+                    setStateDialog(() {
+                      user['friendRequestSent'] = true;
+                    });
+                  },
+                  child: Text("Kết bạn"),
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _phoneController.clear();
+              },
+              child: Text("Đóng"),
+            ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _phoneController.clear();
-            },
-            child: Text("Đóng"),
-          ),
-        ],
       ),
     );
   }
@@ -134,8 +156,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
   Future<void> _sendFriendRequest(int contactId) async {
     try {
       final response = await http.post(
-        Uri.parse(
-            "http://138.2.106.32/contact/add?userId=$currentUserID&contactId=$contactId"),
+        Uri.parse("http://138.2.106.32/contact/add?userId=$currentUserID&contactId=$contactId"),
       );
       final res = json.decode(response.body);
       _showMessage(res['message'] ?? "Đã gửi lời mời kết bạn");
@@ -151,77 +172,92 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
     await _saveSearchHistory();
   }
 
+  Widget _buildUserTile(Map<String, dynamic> user, int index) {
+    return Card(
+      child: ListTile(
+        leading: user['imageUrl'] != null
+            ? CircleAvatar(backgroundImage: NetworkImage(user['imageUrl']))
+            : const CircleAvatar(child: Icon(Icons.person)),
+        title: Text(user['name'] ?? 'Không tên'),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("SĐT: ${user['phone']}"),
+            Text("Email: ${user['email'] ?? "-"}"),
+          ],
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.person_add_alt_1, color: Colors.blue),
+              onPressed: () => _showUserDialog(user),
+            ),
+            if (_input.isEmpty)
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () => _deleteHistoryAt(index),
+              ),
+          ],
+        ),
+        onTap: () => _showUserDialog(user),
+      ),
+    );
+  }
+
+  Widget _buildHistoryList() {
+    if (searchHistory.isEmpty) {
+      return const Center(child: Text("Chưa có lịch sử tìm kiếm"));
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Lịch sử tìm kiếm", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        Expanded(
+          child: ListView.builder(
+            itemCount: searchHistory.length,
+            itemBuilder: (context, index) => _buildUserTile(searchHistory[index], index),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchResultList() {
+    if (searchResult.isEmpty) {
+      return const Center(child: Text("Không tìm thấy người dùng."));
+    }
+    return ListView.builder(
+      itemCount: searchResult.length,
+      itemBuilder: (context, index) => _buildUserTile(searchResult[index], index),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Tìm kiếm người dùng")),
+      appBar: AppBar(title: const Text("Tìm kiếm người dùng")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: _phoneController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: "Nhập số điện thoại",
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.phone,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             _isLoading
-                ? CircularProgressIndicator()
+                ? const CircularProgressIndicator()
                 : Expanded(
-                    child: searchHistory.isEmpty
-                        ? Center(child: Text("Chưa có lịch sử tìm kiếm"))
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Lịch sử tìm kiếm",
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                              SizedBox(height: 10),
-                              Expanded(
-                                child: ListView.builder(
-                                  itemCount: searchHistory.length,
-                                  itemBuilder: (context, index) {
-                                    final user = searchHistory[index];
-                                    return Card(
-                                      child: ListTile(
-                                        leading: user['imageUrl'] != null
-                                            ? CircleAvatar(
-                                                backgroundImage: NetworkImage(
-                                                    user['imageUrl']))
-                                            : CircleAvatar(
-                                                child: Icon(Icons.person)),
-                                        title:
-                                            Text(user['name'] ?? 'Không tên'),
-                                        subtitle: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text("SĐT: ${user['phone']}"),
-                                            Text(
-                                                "Email: ${user['email'] ?? "-"}"),
-                                          ],
-                                        ),
-                                        trailing: IconButton(
-                                          icon: Icon(Icons.delete,
-                                              color: Colors.red),
-                                          onPressed: () {
-                                            _deleteHistoryAt(index);
-                                          },
-                                        ),
-                                        onTap: () => _showUserDialog(user),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                  ),
+              child: _input.isEmpty
+                  ? _buildHistoryList()
+                  : _buildSearchResultList(),
+            ),
           ],
         ),
       ),
