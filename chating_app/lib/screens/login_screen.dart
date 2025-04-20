@@ -5,6 +5,8 @@ import 'package:chating_app/data/information.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chating_app/screens/forgot_pass_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -54,48 +56,114 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-
   Future<void> _signInWithGoogle() async {
     try {
-      // Bước 1: Hiển thị giao diện đăng nhập Google
-      final GoogleSignInAccount? googleUser = await GoogleSignIn(
-          clientId: "19142047184-ul1hhcea8drflmk5jqokj5cu2aih2be9.apps.googleusercontent.com"
-      ).signIn();
-      if (googleUser == null) return; // Người dùng huỷ đăng nhập
+      // 1. Đăng nhập bằng Google
+      final googleSignIn = GoogleSignIn(
+        clientId: "19142047184-ul1hhcea8drflmk5jqokj5cu2aih2be9.apps.googleusercontent.com",
+      );
+      await googleSignIn.signOut();
 
-      // Bước 2: Lấy thông tin xác thực
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+
+      if (googleUser == null) return;
+
+      // 2. Lấy token từ Google
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-      // Bước 3: Tạo credential để đăng nhập với Firebase
+      // 3. Xác thực với Firebase
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // Bước 4: Đăng nhập vào Firebase
       final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
       final user = userCredential.user;
 
-      if (user != null) {
-        // Tạo ObjectUser để đưa vào MainScreen
-        ObjectUser newUser = ObjectUser(
-          userID: "",
-          soDienThoai: user.phoneNumber ?? '',
-          password: '',
-          hoTen: user.displayName ?? '',
-          gender: 'Nam',
-          birthday: '29/08/2003',
-          email: user.email ?? '',
-          work: 'Developer Software',
-          image: "",
-          location:"",
-        );
+      // 4. Kiểm tra email từ Firebase user
+      final email = user?.email;
+      if (email == null || email.isEmpty) {
+        setState(() {
+          _errorMessage = 'Tài khoản Google không có email!';
+        });
+        return;
+      }
 
-        // Điều hướng sang màn hình chính
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MainScreen(user: newUser)),
-        );
+      // 5. Gọi API để kiểm tra user trong hệ thống
+      final checkResponse = await http.get(
+        Uri.parse("http://138.2.106.32/user/account?email=$email"),
+      );
+
+      print("Response body: ${checkResponse.body}");
+
+      if (checkResponse.statusCode == 200) {
+        final dataList = jsonDecode(checkResponse.body);
+        if (dataList is List && dataList.isNotEmpty) {
+          final data = dataList[0];
+
+          ObjectUser existedUser = ObjectUser(
+            userID: data['id'].toString(),
+            soDienThoai: data['phone'] ?? '',
+            password: data['password'] ?? '',
+            hoTen: data['name'] ?? '',
+            gender: data['gender'] ?? 'Nam',
+            birthday: data['birthday'] ?? '',
+            email: data['email'] ?? '',
+            work: data['work'] ?? '',
+            image: data['image'] ?? '',
+            location: data['location'] ?? '',
+          );
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => MainScreen(user: existedUser)),
+          );
+        } else {
+          // Không có user sẽ tạo mới
+          final signupResponse = await http.post(
+            Uri.parse("http://138.2.106.32/user/signup"),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'name': user?.displayName ?? '',
+              'phone': '',
+              'password': email, // Để pass mặc định trùng với email
+              'email': email,
+            }),
+          );
+
+          print("Signup response: ${signupResponse.body}");
+
+          if (signupResponse.statusCode == 200) {
+            final data = jsonDecode(signupResponse.body);
+
+            ObjectUser newUser = ObjectUser(
+              userID: data['id'].toString(),
+              soDienThoai: '',
+              password: '',
+              hoTen: user?.displayName ?? '',
+              gender: 'Nam',
+              birthday: '',
+              email: email,
+              work: '',
+              image: user?.photoURL ?? '',
+              location: '',
+            );
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => MainScreen(user: newUser)),
+            );
+          } else {
+            setState(() {
+              _errorMessage = 'Không thể tạo tài khoản mới!';
+            });
+          }
+        }
+      } else {
+        setState(() {
+          _errorMessage = 'Lỗi khi kiểm tra tài khoản!';
+        });
       }
     } catch (e) {
       print("Đăng nhập Google thất bại: $e");
@@ -110,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      // Đảm bảo đẩy nội dung lên khi có bàn phím
+      // Đẩy nội dung lên khi có bàn phím
       body: SafeArea(
         child: SingleChildScrollView(
           reverse: true, // Đẩy nội dung lên trên cùng khi bàn phím hiện
@@ -120,7 +188,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 .viewInsets
                 .bottom),
             child: IntrinsicHeight(
-              // height: MediaQuery.of(context).size.height,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
