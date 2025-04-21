@@ -108,36 +108,63 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
     searchHistory.insert(0, Map<String, dynamic>.from(user));
     await _saveSearchHistory();
 
-    showDialog(
+    showGeneralDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setStateDialog) => AlertDialog(
-          title: Text("Người dùng tìm thấy"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (user['imageUrl'] != null)
-                CircleAvatar(radius: 40, backgroundImage: NetworkImage(user['imageUrl'])),
-              SizedBox(height: 10),
-              Text("Tên: ${user['name']}"),
-              Text("SĐT: ${user['phone']}"),
-              Text("Email: ${user['email']}"),
-              SizedBox(height: 16),
-              if (user['friend'])
-                Text("Đã là bạn bè", style: TextStyle(color: Colors.green))
-              else if (user['friendRequestSent'])
-                Text("Đã gửi lời mời", style: TextStyle(color: Colors.orange))
-              else
-                ElevatedButton(
-                  onPressed: () async {
-                    await _sendFriendRequest(user['userId']);
-                    setStateDialog(() {
-                      user['friendRequestSent'] = true;
-                    });
-                  },
-                  child: Text("Kết bạn"),
-                ),
-            ],
+      barrierDismissible: true,
+      barrierLabel: "User Found",
+      barrierColor: Colors.black54,
+      transitionDuration: Duration.zero,
+      transitionBuilder: (context, animation, secondaryAnimation, child) => child,
+      pageBuilder: (context, anim1, anim2) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: Center(
+            child: Text(
+              "User Found",
+              style: TextStyle(
+                color: Colors.blue.shade700,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+          ),
+          content: StatefulBuilder(
+            builder: (context, setStateDialog) => Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (user['imageUrl'] != null)
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundImage: NetworkImage(user['imageUrl']),
+                  ),
+                const SizedBox(height: 10),
+                Text("Name: ${user['name']}"),
+                Text("Phone: ${user['phone']}"),
+                Text("Email: ${user['email']}"),
+                const SizedBox(height: 16),
+                if (user['friend'] == true)
+                  const Text("Already friends", style: TextStyle(color: Colors.green))
+                else if (user['friendRequestSent'] == true)
+                  const Text("Friend request sent", style: TextStyle(color: Colors.orange))
+                else
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      await _sendFriendRequest(user['userId']);
+                      setStateDialog(() {
+                        user['friendRequestSent'] = true;
+                      });
+                    },
+                    icon: const Icon(Icons.person_add, color: Colors.white),
+                    label: const Text(
+                      "Add Friend",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                    ),
+                  ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -145,11 +172,11 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                 Navigator.of(context).pop();
                 _phoneController.clear();
               },
-              child: Text("Đóng"),
+              child: const Text("Close", style: TextStyle(color: Colors.blue)),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -237,7 +264,14 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Tìm kiếm người dùng")),
+      appBar: AppBar(
+        backgroundColor: Colors.blue,
+        title: const Text(
+          "Tìm kiếm người dùng",
+          style: TextStyle(color: Colors.white),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

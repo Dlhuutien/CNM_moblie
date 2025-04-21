@@ -1,3 +1,4 @@
+import 'package:chating_app/screens/create_group_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -15,18 +16,26 @@ class ContactScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           toolbarHeight: 0,
-          bottom: const TabBar(
-            tabs: [
+          bottom: TabBar(
+            tabs: const [
               Tab(text: 'Friend List'),
               Tab(text: 'Your Group'),
               Tab(text: 'Notification'),
             ],
+            labelColor: Colors.white, // Màu chữ tab đang được chọn
+            unselectedLabelColor: Colors.black87, // Màu chữ tab không được chọn
+            indicator: BoxDecoration(
+              color: Colors.blue, // Nền xanh cho tab đang được chọn
+              borderRadius: BorderRadius.circular(10),
+            ),
+            indicatorSize: TabBarIndicatorSize.tab,
+            indicatorPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
           ),
         ),
         body: TabBarView(
           children: [
             FriendList(user: user),
-            const GroupList(),
+            GroupList(userId: user.userID),
             NotificationList(userId: user.userID),
           ],
         ),
@@ -183,7 +192,8 @@ class _NotificationListState extends State<NotificationList> {
 }
 
 class GroupList extends StatelessWidget {
-  const GroupList({super.key});
+  final String userId;
+  const GroupList({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -192,8 +202,20 @@ class GroupList extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: ElevatedButton(
-            onPressed: () {},
-            child: const Text('Create new group'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CreateGroupScreen(userId: userId)),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              side: const BorderSide(color: Colors.blue),
+            ),
+            child: const Text(
+              'Create new group',
+              style: TextStyle(color: Colors.blue),
+            ),
           ),
         ),
         Expanded(

@@ -4,8 +4,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
   @override
-  _SignUpScreenState createState() => _SignUpScreenState();
+  State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
@@ -66,60 +68,77 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: SingleChildScrollView(
           reverse: true,
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'SIGN UP',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-                SizedBox(height: 20),
-                _buildTextField('Enter your name', _nameController, Icons.person),
-                _buildTextField('Enter your phone number', _phoneController, Icons.phone, keyboardType: TextInputType.phone),
-                _buildTextField('Enter your password', _passwordController, Icons.lock, obscureText: true),
-                _buildTextField('Confirm your password', _confirmPasswordController, Icons.lock, obscureText: true),
-                if (errorMessage != null) ...[
-                  SizedBox(height: 10),
-                  Text(errorMessage!, style: TextStyle(color: Colors.red)),
-                ],
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _signUp,
-                  child: Text('Sign Up'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+          child: Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+            child: IntrinsicHeight(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                      color: Colors.blue,
+                      alignment: Alignment.center,
+                      child: const Text(
+                        "SIGN UP",
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: 20),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/login');
-                  },
-                  child: Text('Already have an account? Login', style: TextStyle(color: Colors.blue)),
-                ),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(icon: Icon(Icons.facebook, color: Colors.blue), onPressed: () {}),
-                    IconButton(icon: Icon(Icons.g_mobiledata, color: Colors.red), onPressed: () {}),
-                  ],
-                ),
-              ],
+                  Expanded(
+                    flex: 3,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildTextField('Enter your name', _nameController, Icons.person),
+                            _buildTextField('Enter your phone number', _phoneController, Icons.phone, keyboardType: TextInputType.phone),
+                            _buildTextField('Enter your password', _passwordController, Icons.lock, obscureText: true),
+                            _buildTextField('Confirm your password', _confirmPasswordController, Icons.lock, obscureText: true),
+                            if (errorMessage != null) ...[
+                              const SizedBox(height: 10),
+                              Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+                            ],
+                            const SizedBox(height: 20),
+                            ElevatedButton(
+                              onPressed: _signUp,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                padding: const EdgeInsets.symmetric(vertical: 15),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              child: const Text(
+                                "Sign Up",
+                                style: TextStyle(fontSize: 18, color: Colors.white),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pushReplacementNamed(context, '/login');
+                              },
+                              child: const Text('Already have an account? Login', style: TextStyle(color: Colors.blue)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         ),
@@ -140,9 +159,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         decoration: InputDecoration(
           prefixIcon: Icon(icon),
           hintText: hint,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+          border: const UnderlineInputBorder(),
         ),
         validator: (value) {
           if (value == null || value.trim().isEmpty) {
@@ -153,14 +170,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
               return 'Tên phải viết hoa chữ cái đầu và không chứa ký tự đặc biệt';
             }
           }
-
           if (hint == 'Enter your phone number') {
-            if (!RegExp(r"^\d{10}$").hasMatch(value.trim())){
+            if (!RegExp(r"^\d{10}").hasMatch(value.trim())){
               return 'Phone number must be exactly 10 digits';
             }
           }
           if (hint == 'Enter your password') {
-            if (!RegExp(r'^[\S]{8,16}$').hasMatch(value)) {
+            if (!RegExp(r'^[\S]{8,16}\$').hasMatch(value)) {
               return 'Password must be 8-16 characters, no spaces';
             }
           }

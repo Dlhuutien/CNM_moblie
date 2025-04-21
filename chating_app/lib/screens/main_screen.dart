@@ -28,6 +28,22 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: Colors.blue, width: 1),
+            ),
+            padding: EdgeInsets.all(8),
+            child: Icon(Icons.chat_outlined, color: Colors.blue),
+          ),
+          onPressed: () {
+            setState(() {
+              currentIndex = 0;
+            });
+          },
+        ),
         title: GestureDetector(
           onTap: () {
             Navigator.push(

@@ -192,7 +192,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(width: 10),
                 IconButton(
-                  icon: const Icon(Icons.edit, size: 18, color: Colors.blueAccent),
+                  icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
                   onPressed: () => _editField(fieldKey, label, value),
                 ),
               ],
@@ -214,7 +214,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 20),
               decoration: const BoxDecoration(
-                color: Colors.blueAccent,
+                color: Colors.blue,
                 borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
               ),
               child: Column(
@@ -233,7 +233,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: const CircleAvatar(
                             radius: 15,
                             backgroundColor: Colors.white,
-                            child: Icon(Icons.edit, size: 18, color: Colors.blueAccent),
+                            child: Icon(Icons.edit, size: 18, color: Colors.blue),
                           ),
                         ),
                       ),
