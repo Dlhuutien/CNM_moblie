@@ -18,23 +18,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         email: _emailController.text.trim(),
       );
       setState(() {
-        _message = "Đã gửi email khôi phục mật khẩu. Kiểm tra hộp thư của bạn!";
+        _message = "Password reset email has been sent!";
       });
     } on FirebaseAuthException catch (e) {
-      print("Firebase error: ${e.code} - ${e.message}"); // In lỗi cụ thể
-      String error = "Không thể gửi email khôi phục. Vui lòng kiểm tra lại email!";
+      print("Firebase error: ${e.code} - ${e.message}");
+      String error = "Failed to send password reset email.";
       if (e.code == 'user-not-found') {
-        error = "Không tìm thấy người dùng với email này.";
+        error = "No user found with this email.";
       } else if (e.code == 'invalid-email') {
-        error = "Email không hợp lệ.";
+        error = "Invalid email address.";
       }
       setState(() {
         _message = error;
       });
     } catch (e) {
-      print("Lỗi không xác định: $e");
       setState(() {
-        _message = "Đã xảy ra lỗi. Vui lòng thử lại sau.";
+        _message = "An error occurred. Please try again later.";
       });
     }
   }
@@ -42,36 +41,68 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Quên Mật Khẩu")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              "Nhập email để khôi phục mật khẩu:",
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: "Email",
-                border: OutlineInputBorder(),
+      resizeToAvoidBottomInset: true,
+      appBar: AppBar(
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        title: const Text("Forgot Password"),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          reverse: true,
+          child: Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+            child: IntrinsicHeight(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Text(
+                          "Enter your email to reset password:",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _emailController,
+                          decoration: const InputDecoration(
+                            labelText: "Email",
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.email),
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: _resetPassword,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text(
+                            "Send reset email",
+                            style: TextStyle(fontSize: 16, color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        if (_message.isNotEmpty)
+                          Text(
+                            _message,
+                            style: const TextStyle(color: Colors.blue),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              keyboardType: TextInputType.emailAddress,
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _resetPassword,
-              child: const Text("Gửi email khôi phục"),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              _message,
-              style: const TextStyle(color: Colors.red),
-            ),
-          ],
+          ),
         ),
       ),
     );

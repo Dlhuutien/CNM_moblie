@@ -1,3 +1,4 @@
+import 'package:chating_app/screens/create_group_screen.dart';
 import 'package:chating_app/services/chat_api.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -129,6 +130,12 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
             ListTile(
               leading: const Icon(Icons.group_add),
               title: const Text("Create group"),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => CreateGroupScreen(userId: widget.userId)),
+                  );
+                }
             ),
             const ListTile(
               leading: Icon(Icons.block, color: Colors.red),
@@ -202,3 +209,5 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
     );
   }
 }
+
+
