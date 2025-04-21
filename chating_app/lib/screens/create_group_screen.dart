@@ -15,7 +15,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   final TextEditingController _phoneController = TextEditingController();
 
   List<Map<String, dynamic>> _allFriends = [];
-  final Map<String, bool> _selectedFriends = {};
+  final Map<String, bool> _selectedFriends = {}; // key là userId (String)
 
   @override
   void initState() {
@@ -25,20 +25,104 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
   Future<void> _fetchFriends() async {
     try {
-      final response = await http.get(Uri.parse("http://138.2.106.32/contact/list?userId=${widget.userId}"));
+      final response = await http.get(
+        Uri.parse("http://138.2.106.32/contact/list?userId=${widget.userId}"),
+      );
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final friends = List<Map<String, dynamic>>.from(data['data']);
+        final rawFriends = List<Map<String, dynamic>>.from(data['data']);
+
+        // Lọc userId hợp lệ
+        final friends = rawFriends.where((f) =>
+        f['contactId'] != null &&
+            f['contactId'].toString() != 'null' &&
+            f['contactId'].toString() != 'undefined').toList();
 
         setState(() {
           _allFriends = friends;
           for (var friend in friends) {
-            _selectedFriends[friend['name']] = false;
+            final id = friend['contactId'].toString();
+            _selectedFriends[id] = false;
           }
         });
       }
     } catch (e) {
       print("Lỗi khi lấy danh sách bạn bè: $e");
+    }
+  }
+
+
+  Future<void> createGroup() async {
+    final name = _groupNameController.text.trim();
+    final description = "";
+    // final ownerId = widget.userId;
+    final ownerId = int.tryParse(widget.userId);
+    final image = "";
+
+    final selectedIds = _selectedFriends.entries
+        .where((e) => e.value == true)
+        .map((e) => int.tryParse(e.key))
+        .whereType<int>()
+        .toList();
+
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Group name không hợp lệ")),
+      );
+      return;
+    }
+
+    if (selectedIds.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Cần chọn ít nhất 2 thành viên để tạo nhóm")),
+      );
+      return;
+    }
+
+    final url = Uri.parse("http://138.2.106.32/group/create");
+    final headers = {'Content-Type': 'application/json'};
+    final body = jsonEncode({
+      "name": name,
+      "description": description,
+      "image": image,
+      "ownerId": ownerId,
+      "initialMembers": selectedIds,
+    });
+
+    print("Gửi dữ liệu tạo nhóm:");
+    print("Body: $body");
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+      final data = jsonDecode(response.body);
+
+      print("Phản hồi từ server:");
+      print("Status: ${response.statusCode}");
+      print("Body: ${response.body}");
+
+      if (response.statusCode == 201 && data["success"] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Group created successfully")),
+        );
+        Navigator.pop(context);
+      } else {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text("Tạo nhóm thất bại"),
+            content: Text(data["message"] ?? "Đã xảy ra lỗi không xác định."),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text("Đóng")),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      print("Exception khi gọi API: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi kết nối: $e")),
+      );
     }
   }
 
@@ -109,14 +193,15 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                           child: ListView(
                             shrinkWrap: true,
                             children: _allFriends.map((friend) {
+                              final id = friend['contactId'].toString();
                               final name = friend['name'];
                               final phone = friend['phone'];
                               final avatar = friend['imageUrl'] ?? '';
                               return CheckboxListTile(
-                                value: _selectedFriends[name] ?? false,
+                                value: _selectedFriends[id] ?? false,
                                 onChanged: (val) {
                                   setState(() {
-                                    _selectedFriends[name] = val ?? false;
+                                    _selectedFriends[id] = val ?? false;
                                   });
                                 },
                                 title: Text(name),
@@ -128,12 +213,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                             }).toList(),
                           ),
                         ),
-                        const Spacer(), // Đẩy nút xuống đáy
+                        const Spacer(),
                         ElevatedButton(
-                          onPressed: () {
-                            // TODO: Handle create group logic
-                            Navigator.pop(context);
-                          },
+                          onPressed: createGroup,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
                             padding: const EdgeInsets.symmetric(vertical: 15),

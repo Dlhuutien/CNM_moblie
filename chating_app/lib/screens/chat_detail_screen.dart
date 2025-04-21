@@ -1,4 +1,6 @@
+
 import 'dart:io';
+import 'package:chating_app/screens/chat_group_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -15,12 +17,14 @@ class ChatDetailScreen extends StatefulWidget {
   final String name;
   final String chatId;
   final String userId;
+  final bool isGroup;
 
   const ChatDetailScreen({
     super.key,
     required this.name,
     required this.chatId,
     required this.userId,
+    this.isGroup = false,
   });
 
   @override
@@ -32,22 +36,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
   List<Map<String, dynamic>> _messages = [];
   bool _showEmojiPicker = false;
 
-  String? _selectedFile;
   FlutterSoundRecorder? _recorder;
   bool _isRecording = false;
   WebSocketService? _webSocketService;
-
-  @override
-  void didChangeMetrics() {
-    final bottomInset = WidgetsBinding.instance.window.viewInsets.bottom;
-    final isKeyboardVisible = bottomInset > 0.0;
-
-    if (isKeyboardVisible && _showEmojiPicker) {
-      setState(() {
-        _showEmojiPicker = false;
-      });
-    }
-  }
 
   @override
   void initState() {
@@ -82,10 +73,24 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
           });
         }
       },
-
     );
 
     _webSocketService?.connect();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _recorder?.closeRecorder();
+    _webSocketService?.close();
+    super.dispose();
+  }
+
+  void didChangeMetrics() {
+    final bottomInset = WidgetsBinding.instance.window.viewInsets.bottom;
+    if (bottomInset > 0 && _showEmojiPicker) {
+      setState(() => _showEmojiPicker = false);
+    }
   }
 
   Future<void> _fetchMessages() async {
@@ -101,15 +106,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
 
   String _formatTimestamp(String? iso) {
     if (iso == null || iso.isEmpty) return "";
-    final dt = DateTime.tryParse(iso);
-    if (dt == null) return "";
-
-    // Chuyển từ UTC -> Local (client device)
-    final localTime = dt.toLocal();
-
-    return "${localTime.hour.toString().padLeft(2, '0')}:${localTime.minute.toString().padLeft(2, '0')}";
+    final dt = DateTime.tryParse(iso)?.toLocal();
+    return dt != null ? "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}" : "";
   }
-
 
   void _sendMessage() {
     final content = _messageController.text.trim();
@@ -121,19 +120,33 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
 
   void _toggleEmojiPicker() async {
     FocusScope.of(context).unfocus();
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    setState(() {
-      _showEmojiPicker = !_showEmojiPicker;
-    });
+    await Future.delayed(const Duration(milliseconds: 300));
+    setState(() => _showEmojiPicker = !_showEmojiPicker);
   }
 
   void _dismissEmojiPicker() {
     if (_showEmojiPicker) {
-      setState(() {
-        _showEmojiPicker = false;
-      });
+      setState(() => _showEmojiPicker = false);
     }
+  }
+
+  Future<void> _initializeRecorder() async {
+    var status = await Permission.microphone.request();
+    if (status != PermissionStatus.granted) {
+      throw RecordingPermissionException("Mic permission not granted");
+    }
+    await _recorder!.openRecorder();
+  }
+
+  Future<void> _startRecording() async {
+    await _recorder!.startRecorder(toFile: 'voice_message.aac');
+    setState(() => _isRecording = true);
+  }
+
+  Future<void> _stopRecording() async {
+    String? filePath = await _recorder!.stopRecorder();
+    setState(() => _isRecording = false);
+    print("Recording saved to: $filePath");
   }
 
   Future<void> _pickFile() async {
@@ -172,115 +185,62 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
       final result = await FilePicker.platform.pickFiles();
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
-        final filePath = file.path;
-        final fileName = file.name;
-
-        if (filePath != null) {
-          final uploaded = await ChatApi.uploadFile(filePath, fileName);
-          if (uploaded != null) {
-            final ext = fileName.split('.').last.toLowerCase();
-            final isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext);
-            _webSocketService?.sendMessageWithAttachment(
-              content: isImage ? "Đã gửi một ảnh" : "Đã gửi một tệp tin: ${file.name}",
-              attachmentUrl: uploaded['url']!,
-            );
-          }
+        final uploaded = await ChatApi.uploadFile(file.path!, file.name);
+        if (uploaded != null) {
+          final isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(file.extension?.toLowerCase());
+          _webSocketService?.sendMessageWithAttachment(
+            content: isImage ? "Đã gửi một ảnh" : "Đã gửi một tệp tin: ${file.name}",
+            attachmentUrl: uploaded['url']!,
+          );
         }
       }
     }
   }
 
-
-  Future<void> _initializeRecorder() async {
-    var status = await Permission.microphone.request();
-    if (status != PermissionStatus.granted) {
-      throw RecordingPermissionException("Mic permission not granted");
-    }
-    await _recorder!.openRecorder();
-  }
-
-  Future<void> _startRecording() async {
-    await _recorder!.startRecorder(toFile: 'voice_message.aac');
-    setState(() {
-      _isRecording = true;
-    });
-  }
-
-  Future<void> _stopRecording() async {
-    String? filePath = await _recorder!.stopRecorder();
-    setState(() {
-      _isRecording = false;
-    });
-    print("Recording saved to: $filePath");
-  }
-
   void _handleMessageAction(String action, Map<String, dynamic> message) async {
     final messageId = message['messageId'];
-    if (messageId == null) {
-      print("Không thể xử lý vì messageId bị null.");
-      return;
-    }
+    if (messageId == null) return;
 
     final deleteType = action == "undo" ? "unsent" : "remove";
 
-    final success = await ChatApi.deleteMessage(
-        messageId.toString(), deleteType);
-
+    final success = await ChatApi.deleteMessage(messageId.toString(), deleteType);
     if (success) {
       setState(() {
         if (deleteType == "unsent") {
           message['deleteReason'] = 'unsent';
           message['content'] = 'Tin nhắn đã thu hồi';
-        } else if (deleteType == "remove") {
+        } else {
           _messages.removeWhere((m) => m['messageId'] == messageId);
         }
       });
-    } else {
-      print("Lỗi khi $action");
     }
-  }
-
-    @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _recorder?.closeRecorder();
-    _webSocketService?.close();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Row(
-          children: [
-            const SizedBox(width: 10),
-            Flexible(
-              child: Text(
-                widget.name,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
+        leading: BackButton(),
+        title: Text(widget.name),
         actions: [
-          IconButton(icon: const Icon(Icons.call), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.push_pin), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.call),
+            onPressed: () {
+              // TODO: Thêm logic gọi điện nếu có
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Chức năng gọi sẽ được cập nhật sau")),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ChatProfileScreen(
-                    chatId: widget.chatId,
-                    userId: widget.userId,
-                  ),
+                  builder: (_) => widget.isGroup
+                      ? ChatGroupProfileScreen(chatId: widget.chatId, userId: widget.userId)
+                      : ChatProfileScreen(chatId: widget.chatId, userId: widget.userId),
                 ),
               );
             },
@@ -289,101 +249,93 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
       ),
       body: GestureDetector(
         onTap: _dismissEmojiPicker,
-        child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  reverse: true,
-                  itemCount: _messages.length,
-                  itemBuilder: (context, index) {
-                    final message = _messages[index];
-                    final isUserMessage = message['userId'].toString() == widget.userId;
-                    return MessageCard(
-                      message: message,
-                      isUserMessage: isUserMessage,
-                      formatTimestamp: _formatTimestamp,
-                      onAction: _handleMessageAction,
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                reverse: true,
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  final message = _messages[index];
+                  final isUserMessage = message['userId'].toString() == widget.userId;
+                  return MessageCard(
+                    message: message,
+                    isUserMessage: isUserMessage,
+                    formatTimestamp: _formatTimestamp,
+                    onAction: _handleMessageAction,
+                    isGroup: widget.isGroup,
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      decoration: InputDecoration(
+                        hintText: "Type a message...",
+                        hintStyle: TextStyle(fontSize: 13),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.emoji_emotions),
+                    color: Colors.orange,
+                    onPressed: _toggleEmojiPicker,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.attach_file),
+                    onPressed: _pickFile,
+                  ),
+                  IconButton(
+                    icon: Icon(_isRecording ? Icons.stop : Icons.mic),
+                    color: _isRecording ? Colors.red : Colors.blue,
+                    onPressed: () {
+                      _isRecording ? _stopRecording() : _startRecording();
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    color: Colors.blue,
+                    onPressed: _sendMessage,
+                  ),
+                ],
+              ),
+            ),
+            if (_showEmojiPicker)
+              SizedBox(
+                height: 300,
+                child: EmojiPicker(
+                  onEmojiSelected: (category, emoji) {
+                    _messageController.text += emoji.emoji;
+                    _messageController.selection = TextSelection.fromPosition(
+                      TextPosition(offset: _messageController.text.length),
                     );
                   },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _messageController,
-                        decoration: InputDecoration(
-                          hintText: "Type a message...",
-                          hintStyle: TextStyle(fontSize: 13),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.emoji_emotions),
-                      color: Colors.yellow,
-                      onPressed: _toggleEmojiPicker,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.link),
-                      onPressed: _pickFile,
-                    ),
-                    IconButton(
-                      icon: Icon(_isRecording ? Icons.stop : Icons.mic),
-                      color: _isRecording ? Colors.red : Colors.blue,
-                      onPressed: () {
-                        if (_isRecording) {
-                          _stopRecording();
-                        } else {
-                          _startRecording();
-                        }
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.send),
-                      color: Colors.blue,
-                      onPressed: _sendMessage,
-                    ),
-                  ],
-                ),
-              ),
-              if (_showEmojiPicker)
-                SizedBox(
-                  height: 300,
-                  child: EmojiPicker(
-                    onEmojiSelected: (category, emoji) {
-                      _messageController.text += emoji.emoji;
-                      _messageController.selection = TextSelection.fromPosition(
-                        TextPosition(offset: _messageController.text.length),
-                      );
-                    },
-                    onBackspacePressed: () {
-                      _messageController.text = _messageController.text.characters.skipLast(1).toString();
-                      _messageController.selection = TextSelection.fromPosition(
-                        TextPosition(offset: _messageController.text.length),
-                      );
-                    },
-                    textEditingController: _messageController,
-                    config: Config(
-                      height: 300,
-                      checkPlatformCompatibility: true,
-                      emojiViewConfig: EmojiViewConfig(
-                        emojiSizeMax: 28 *
-                            (foundation.defaultTargetPlatform == TargetPlatform.iOS ? 1.20 : 1.0),
-                      ),
-                      categoryViewConfig: const CategoryViewConfig(),
-                      bottomActionBarConfig: const BottomActionBarConfig(),
-                      searchViewConfig: const SearchViewConfig(),
+                  onBackspacePressed: () {
+                    _messageController.text = _messageController.text.characters.skipLast(1).toString();
+                    _messageController.selection = TextSelection.fromPosition(
+                      TextPosition(offset: _messageController.text.length),
+                    );
+                  },
+                  textEditingController: _messageController,
+                  config: Config(
+                    height: 300,
+                    emojiViewConfig: EmojiViewConfig(
+                      emojiSizeMax: 28 *
+                          (foundation.defaultTargetPlatform == TargetPlatform.iOS ? 1.2 : 1.0),
                     ),
                   ),
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
