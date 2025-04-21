@@ -80,6 +80,8 @@ class WebSocketService {
             "attachmentUrl": msgPayload["attachmentUrl"],
             "timestamp": msgPayload["timestamp"],
             "deleteReason": null,
+            "senderName": msgPayload["senderName"] ?? "",
+            "senderImage": msgPayload["senderImage"] ?? "",
           });
         }
       });

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
@@ -8,7 +7,7 @@ import 'package:mime/mime.dart';
 class ChatApi {
   static const String baseUrl = "http://138.2.106.32";
 
-  //Lấy các user đã nhắn tin
+  ///Lấy các user đã nhắn tin
   static Future<List<Map<String, dynamic>>> fetchChatsWithLatestMessage(String userId) async {
     final response = await http.get(Uri.parse("$baseUrl/chat/me?userId=$userId"));
 
@@ -36,7 +35,7 @@ class ChatApi {
   }
 
 
-  //Lấy lịch sử trò chuyện
+  ///Lấy lịch sử trò chuyện
   static Future<List<Map<String, dynamic>>> fetchMessages(String chatId, String userId) async {
     final url = Uri.parse("$baseUrl/chat/$chatId/history/50?userId=$userId");
     final response = await http.get(url);
@@ -49,7 +48,7 @@ class ChatApi {
     }
   }
 
-  //Hiển thị profile của người đang trò chuyện
+  ///Hiển thị profile của người đang trò chuyện
   static Future<Map<String, dynamic>> loadPartnerInfo(String chatId, String userId) async {
     final url = Uri.parse("$baseUrl/chat/$chatId/info?userId=$userId");
     final res = await http.get(url);
@@ -69,6 +68,7 @@ class ChatApi {
     }
   }
 
+  ///Upload file
   static Future<Map<String, String>?> uploadFile(String filePath, String fileName) async {
     final url = Uri.parse('$baseUrl/user/upload');
     final mimeType = lookupMimeType(filePath);
@@ -104,7 +104,7 @@ class ChatApi {
   }
 
 
-  //Upload file
+  ///Upload file hình
   static Future<String?> uploadImage(XFile file) async {
     final url = Uri.parse('$baseUrl/user/upload');
     final request = http.MultipartRequest('POST', url);
@@ -139,7 +139,7 @@ class ChatApi {
   }
 
 
-//Xóa tin nhắn
+  ///Xóa tin nhắn
   static Future<bool> deleteMessage(String messageId, String deleteType) async {
     final url = Uri.parse("$baseUrl/chat/deleteMsg")
         .replace(queryParameters: {
@@ -156,7 +156,7 @@ class ChatApi {
     }
   }
 
-  //Tìm kiếm tin nhắn
+  ///Tìm kiếm tin nhắn
   static Future<List<Map<String, dynamic>>> searchMessages(String chatId, String query, String userId) async {
     final url = Uri.parse("$baseUrl/chat/$chatId/search?query=$query&userId=$userId");
     final response = await http.get(url);
@@ -168,4 +168,106 @@ class ChatApi {
       throw Exception("Lỗi searchMessages: ${response.body}");
     }
   }
+
+  ///Lấy danh sách bạn bè
+  static Future<List<Map<String, dynamic>>> getContacts(String userId) async {
+    final url = Uri.parse("$baseUrl/contact/list?userId=$userId");
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return List<Map<String, dynamic>>.from(data['data']);
+    } else {
+      throw Exception("Lỗi khi lấy danh sách bạn bè: ${response.body}");
+    }
+  }
+
+  ///Thêm thành viên vào nhóm
+  static Future<void> addGroupMember(String chatId, String userId, int newMemberId) async {
+    final url = Uri.parse("$baseUrl/group/member/add");
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "chatId": chatId,
+        "userId": int.tryParse(userId),
+        "newMemberId": newMemberId,
+        "role": "member",
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      final data = jsonDecode(response.body);
+      throw Exception("Lỗi khi thêm thành viên $newMemberId: ${data['message']}");
+    }
+  }
+
+
+  /// Lấy danh sách thành viên nhóm
+  static Future<List<Map<String, dynamic>>> getGroupMembers(String chatId, String userId) async {
+    final url = Uri.parse("$baseUrl/group/$chatId/members?userId=$userId");
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return List<Map<String, dynamic>>.from(data["members"]);
+    } else {
+      throw Exception("Lỗi khi lấy danh sách thành viên: ${response.body}");
+    }
+  }
+
+  /// Xóa thành viên khỏi nhóm
+  static Future<void> removeGroupMember(String chatId, String userId, String memberToRemoveId) async {
+    final url = Uri.parse("$baseUrl/group/member/remove");
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "chatId": chatId,
+        "userId": userId,
+        "memberToRemoveId": memberToRemoveId,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Lỗi khi xóa thành viên: ${response.body}");
+    }
+  }
+
+  /// Thay đổi vai trò thành viên
+  static Future<void> changeGroupRole(String chatId, String userId, String memberToChangeId, String newRole) async {
+    final url = Uri.parse("$baseUrl/group/member/role");
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "chatId": chatId,
+        "userId": userId,
+        "memberToChangeId": memberToChangeId,
+        "newRole": newRole,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Lỗi khi thay đổi vai trò: ${response.body}");
+    }
+  }
+
+  /// Giải tán nhóm
+  static Future<void> disbandGroup(String chatId, String userId) async {
+    final url = Uri.parse("$baseUrl/group/disband");
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "chatId": chatId,
+        "userId": userId,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("Lỗi khi giải tán nhóm: ${response.body}");
+    }
+  }
 }
+

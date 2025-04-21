@@ -13,6 +13,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  String _selectedTab = "All";
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
@@ -26,6 +28,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
         final chats = snapshot.data ?? [];
 
+        // Lọc theo tab
+        final filteredChats = chats.where((chat) {
+          if (_selectedTab == "All") return true;
+          if (_selectedTab == "Group") return chat["ChatID"].toString().startsWith("group-");
+          if (_selectedTab == "Unread") return chat["isUnread"] == true; // Nếu có field này
+          return true;
+        }).toList();
+
         return SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,20 +46,19 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildTab("All", isSelected: true),
-                    _buildTab("Unread", isSelected: false),
-                    _buildTab("Group", isSelected: false),
+                    _buildTab("All", isSelected: _selectedTab == "All"),
+                    _buildTab("Unread", isSelected: _selectedTab == "Unread"),
+                    _buildTab("Group", isSelected: _selectedTab == "Group"),
                   ],
                 ),
               ),
 
-              // Messages section
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                 child: Text("Messages", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
 
-              for (var chat in chats)
+              for (var chat in filteredChats)
                 _buildMessageTile(
                   context: context,
                   chatId: chat["ChatID"],
@@ -57,6 +66,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   name: chat["chatName"],
                   message: chat["latestMessage"]?["Content"] ?? "",
                   time: chat["latestMessage"]?["Timestamp"]?.substring(11, 16) ?? "",
+                  isGroup: chat["ChatID"].toString().startsWith("group-"),
                 ),
             ],
           ),
@@ -66,17 +76,24 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildTab(String label, {required bool isSelected}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.blue : Colors.grey[200],
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.white : Colors.black,
-          fontWeight: FontWeight.bold,
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedTab = label;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue : Colors.grey[200],
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
@@ -89,6 +106,7 @@ class _ChatScreenState extends State<ChatScreen> {
     required String name,
     required String message,
     required String time,
+    required bool isGroup,
   }) {
     return ListTile(
       leading: CircleAvatar(
@@ -103,10 +121,11 @@ class _ChatScreenState extends State<ChatScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ChatDetailScreen(
+            builder: (_) => ChatDetailScreen(
               name: name,
               chatId: chatId,
               userId: widget.user.userID,
+              isGroup: isGroup,
             ),
           ),
         );

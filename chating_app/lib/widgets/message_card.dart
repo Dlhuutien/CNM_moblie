@@ -14,6 +14,7 @@ class MessageCard extends StatefulWidget {
   final bool isUserMessage;
   final String Function(String?) formatTimestamp;
   final MessageActionCallback onAction;
+  final bool isGroup; // Thêm isGroup
 
   const MessageCard({
     Key? key,
@@ -21,6 +22,7 @@ class MessageCard extends StatefulWidget {
     required this.isUserMessage,
     required this.formatTimestamp,
     required this.onAction,
+    this.isGroup = false,
   }) : super(key: key);
 
   @override
@@ -55,51 +57,71 @@ class _MessageCardState extends State<MessageCard> {
         },
         child: Align(
           alignment: widget.isUserMessage ? Alignment.centerRight : Alignment.centerLeft,
-          child: Card(
-            color: widget.isUserMessage ? const Color(0xFFE0ECFC) : Colors.grey[200],
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                crossAxisAlignment: widget.isUserMessage
-                    ? CrossAxisAlignment.end
-                    : CrossAxisAlignment.start,
-                children: [
-                  if (widget.message['deleteReason'] == 'unsent')
-                    const Padding(
-                      padding: EdgeInsets.only(top: 6.0),
-                      child: Text(
-                        'Tin nhắn đã thu hồi',
-                        style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                          color: Colors.grey,
-                        ),
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.5,
+            ),
+            padding: const EdgeInsets.all(10),
+            margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+            decoration: BoxDecoration(
+              color: widget.isUserMessage ? const Color(0xFFE0ECFC) : Colors.grey[200],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: widget.isUserMessage
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
+              children: [
+                if (widget.isGroup && !widget.isUserMessage) ...[
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 12,
+                        backgroundImage: widget.message['senderImage'] != null
+                            ? NetworkImage(widget.message['senderImage'])
+                            : const AssetImage('assets/profile.png') as ImageProvider,
                       ),
-                    )
-                  else ...[
-                    if (widget.message['attachmentUrl'] != null &&
-                        widget.message['attachmentUrl'].toString().isNotEmpty)
-                      _buildAttachmentWidget(widget.message['attachmentUrl']),
-                    if (widget.message['content'] != null &&
-                        widget.message['content'].toString().isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6.0),
-                        child: RichText(
-                          text: TextSpan(
-                            style: TextStyle(
-                              color: widget.isUserMessage ? Colors.black : Colors.black,
-                            ),
-                            children: _buildTextWithLinks(widget.message['content'] ?? ""),
-                          ),
-                        ),
+                      const SizedBox(width: 8),
+                      Text(
+                        widget.message['senderName'] ?? 'Unknown',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                       ),
-                  ],
-                  const SizedBox(height: 4),
-                  Text(
-                    widget.formatTimestamp(widget.message['timestamp']),
-                    style: const TextStyle(fontSize: 10, color: Colors.grey),
+                    ],
                   ),
+                  const SizedBox(height: 6),
                 ],
-              ),
+
+                // Phần hiển thị tin nhắn như cũ
+                if (widget.message['deleteReason'] == 'unsent')
+                  const Padding(
+                    padding: EdgeInsets.only(top: 6.0),
+                    child: Text(
+                      'Tin nhắn đã thu hồi',
+                      style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                    ),
+                  )
+                else ...[
+                  if (widget.message['attachmentUrl'] != null &&
+                      widget.message['attachmentUrl'].toString().isNotEmpty)
+                    _buildAttachmentWidget(widget.message['attachmentUrl']),
+                  if (widget.message['content'] != null &&
+                      widget.message['content'].toString().isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6.0),
+                      child: RichText(
+                        text: TextSpan(
+                          style: const TextStyle(color: Colors.black),
+                          children: _buildTextWithLinks(widget.message['content'] ?? ""),
+                        ),
+                      ),
+                    ),
+                ],
+                const SizedBox(height: 4),
+                Text(
+                  widget.formatTimestamp(widget.message['timestamp']),
+                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                ),
+              ],
             ),
           ),
         ),
@@ -107,7 +129,6 @@ class _MessageCardState extends State<MessageCard> {
     );
   }
 
-  // Phân biệt ảnh và file
   Widget _buildAttachmentWidget(String url) {
     final isImage = _isImageFile(url);
     final fileName = Uri.parse(url).pathSegments.last;
@@ -162,32 +183,6 @@ class _MessageCardState extends State<MessageCard> {
       );
     }
   }
-
-  Future<void> openUrlSmart(BuildContext context, String url) async {
-    final uri = Uri.parse(url);
-
-    final modes = [
-      LaunchMode.externalApplication,
-      LaunchMode.inAppBrowserView,
-      LaunchMode.inAppWebView,
-      LaunchMode.platformDefault,
-    ];
-
-    for (final mode in modes) {
-      try {
-        final canLaunchExternal = await canLaunchUrl(uri);
-        if (canLaunchExternal) {
-          final success = await launchUrl(uri, mode: mode);
-          if (success) return;
-        }
-      } catch (_) {}
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Không tìm được ứng dụng để mở file.")),
-    );
-  }
-
 
   bool _isImageFile(String url) {
     final ext = url.toLowerCase().split('.').last;
@@ -284,9 +279,9 @@ class _MessageCardState extends State<MessageCard> {
     return spans;
   }
 }
+
 Future<void> downloadFile(BuildContext context, String url, String fileName) async {
   try {
-    // Yêu cầu quyền lưu trữ
     final status = await Permission.storage.request();
     if (!status.isGranted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -295,7 +290,7 @@ Future<void> downloadFile(BuildContext context, String url, String fileName) asy
       return;
     }
 
-    final dir = await getExternalStorageDirectory(); // Android only
+    final dir = await getExternalStorageDirectory();
     if (dir == null) throw Exception("Không tìm được thư mục lưu");
 
     final savePath = "${dir.path}/$fileName";
