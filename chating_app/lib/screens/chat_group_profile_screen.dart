@@ -159,7 +159,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
     if (confirmed != true) return;
 
     try {
-      await ChatApi.removeGroupMember(widget.chatId, widget.userId, widget.userId);
+      await ChatApi.leaveGroup(widget.chatId, widget.userId);
 
       await Future.delayed(const Duration(milliseconds: 500));
 

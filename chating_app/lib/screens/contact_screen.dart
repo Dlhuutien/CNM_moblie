@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:chating_app/screens/create_group_screen.dart';
 import 'package:chating_app/services/chat_api.dart';
 import 'package:flutter/material.dart';
@@ -5,10 +6,12 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:chating_app/data/user.dart';
 import 'package:chating_app/screens/chat_detail_screen.dart';
+import 'package:flutter/foundation.dart';
 
 class ContactScreen extends StatelessWidget {
   final ObjectUser user;
   const ContactScreen({super.key, required this.user});
+
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +57,8 @@ class FriendList extends StatefulWidget {
 }
 
 class _FriendListState extends State<FriendList> {
-  List<dynamic> friends = [];
+  Map<String, List<Map<String, dynamic>>> groupedFriends = {};
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -62,61 +66,109 @@ class _FriendListState extends State<FriendList> {
     _fetchFriends();
   }
 
+  /// Gọi API để lấy danh sách bạn bè, sắp xếp theo tên và nhóm theo chữ cái đầu
   Future<void> _fetchFriends() async {
-    final response = await http.get(Uri.parse("http://138.2.106.32/contact/list?userId=${widget.user.userID}"));
+    setState(() => isLoading = true);
+    final response = await http.get(Uri.parse(
+        "http://138.2.106.32/contact/list?userId=${widget.user.userID}"));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      setState(() {
-        friends = data['data'];
+      final List<Map<String, dynamic>> sorted = List<Map<String, dynamic>>.from(
+          data['data']);
+
+      sorted.sort((a, b) {
+        final nameA = (a['name'] ?? '').toLowerCase();
+        final nameB = (b['name'] ?? '').toLowerCase();
+        return nameA.compareTo(nameB);
       });
+
+      final Map<String, List<Map<String, dynamic>>> grouped = {};
+      for (var friend in sorted) {
+        final name = friend['name'] ?? '';
+        final letter = name.isNotEmpty ? name[0].toUpperCase() : '#';
+        grouped.putIfAbsent(letter, () => []).add(friend);
+      }
+
+      setState(() {
+        groupedFriends = grouped;
+        isLoading = false;
+      });
+    } else {
+      setState(() => isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (friends.isEmpty) return const Center(child: Text("Chưa có bạn bè nào"));
+    if (isLoading) return const Center(child: CircularProgressIndicator());
+
+    if (groupedFriends.isEmpty)
+      return const Center(child: Text("Chưa có bạn bè nào"));
+
+    final sortedKeys = groupedFriends.keys.toList()
+      ..sort();
+
     return ListView.builder(
-      itemCount: friends.length,
+      itemCount: sortedKeys.length,
       itemBuilder: (context, index) {
-        final friend = friends[index];
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundImage: NetworkImage(friend['imageUrl']),
-          ),
-          title: Text(friend['name']),
-          subtitle: Text(friend['phone']),
-          trailing: SizedBox(
-            width: 150, // đủ rộng cho 3 icon
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.message),
-                  onPressed: () {
-                    final chatId = [widget.user.userID, friend['contactId']]
-                        .map((e) => e.toString())
-                        .toList()
-                      ..sort();
+        final letter = sortedKeys[index];
+        final friends = groupedFriends[letter]!;
 
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChatDetailScreen(
-                          name: friend['name'],
-                          chatId: chatId.join('-'),
-                          user: widget.user,
-                          userId: widget.user.userID,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                IconButton(icon: const Icon(Icons.call), onPressed: () {}),
-                IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () {}),
-              ],
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  vertical: 4.0, horizontal: 12),
+              child: Text(letter, style: const TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: 16)),
             ),
-          ),
-
+            ...friends.map((friend) {
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: NetworkImage(friend['imageUrl']),
+                ),
+                title: Text(friend['name']),
+                subtitle: Text(friend['phone']),
+                trailing: SizedBox(
+                  width: 150,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.message),
+                        onPressed: () {
+                          final chatId = [
+                            widget.user.userID,
+                            friend['contactId']
+                          ]
+                              .map((e) => e.toString())
+                              .toList()
+                            ..sort();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ChatDetailScreen(
+                                    name: friend['name'],
+                                    chatId: chatId.join('-'),
+                                    user: widget.user,
+                                    userId: widget.user.userID,
+                                  ),
+                            ),
+                          );
+                        },
+                      ),
+                      IconButton(icon: const Icon(Icons.call),
+                          onPressed: () {}),
+                      IconButton(icon: const Icon(
+                          Icons.delete, color: Colors.red), onPressed: () {}),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ],
         );
       },
     );
@@ -140,6 +192,7 @@ class _NotificationListState extends State<NotificationList> {
     _fetchRequests();
   }
 
+  /// Gọi API lấy danh sách lời mời kết bạn
   Future<void> _fetchRequests() async {
     final response = await http.get(Uri.parse("http://138.2.106.32/contact/requests?userId=${widget.userId}"));
     if (response.statusCode == 200) {
@@ -150,6 +203,7 @@ class _NotificationListState extends State<NotificationList> {
     }
   }
 
+  /// Gửi yêu cầu chấp nhận lời mời kết bạn
   Future<void> _acceptRequest(String senderId) async {
     final response = await http.post(
       Uri.parse("http://138.2.106.32/contact/accept?userId=${widget.userId}&senderId=$senderId"),
@@ -204,15 +258,25 @@ class GroupList extends StatefulWidget {
 class _GroupListState extends State<GroupList> {
   Map<String, List<Map<String, dynamic>>> groupedGroups = {};
   bool isLoading = true;
+  Timer? _groupRefreshTimer;
 
   @override
   void initState() {
     super.initState();
     _loadGroups();
+    _groupRefreshTimer = Timer.periodic(Duration(seconds: 2), (_) => _loadGroups());
   }
 
+  @override
+  void dispose() {
+    _groupRefreshTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Gọi API lấy danh sách các nhóm của người dùng, lọc các nhóm chưa bị giải tán,
+  /// sắp xếp theo tên và nhóm theo chữ cái đầu.
+  /// Tự động cập nhật khi có thay đổi để hiển thị thời gian thực.
   Future<void> _loadGroups() async {
-    setState(() => isLoading = true);
     try {
       final chats = await ChatApi.fetchChatsWithLatestMessage(widget.user.userID);
       final filtered = chats
@@ -221,14 +285,12 @@ class _GroupListState extends State<GroupList> {
           chat["Status"] != "disbanded")
           .toList();
 
-      // Sắp xếp theo tên
       filtered.sort((a, b) {
         final nameA = (a["chatName"] ?? "").toString().toLowerCase();
         final nameB = (b["chatName"] ?? "").toString().toLowerCase();
         return nameA.compareTo(nameB);
       });
 
-      // Nhóm theo chữ cái đầu
       final grouped = <String, List<Map<String, dynamic>>>{};
       for (var group in filtered) {
         final name = group["chatName"] ?? "Unnamed Group";
@@ -236,13 +298,19 @@ class _GroupListState extends State<GroupList> {
         grouped.putIfAbsent(firstLetter, () => []).add(group);
       }
 
-      setState(() {
-        groupedGroups = grouped;
-        isLoading = false;
-      });
+      //️ Chỉ update nếu có thay đổi
+      if (!mapEquals(grouped, groupedGroups)) {
+        setState(() {
+          groupedGroups = grouped;
+          isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() => isLoading = false);
       print("Lỗi khi load nhóm: $e");
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 

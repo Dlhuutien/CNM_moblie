@@ -1,10 +1,10 @@
+import 'package:chating_app/services/notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'screens/introduction_screen.dart';
 import 'screens/login_screen.dart';
-import 'screens/main_screen.dart';
 import 'screens/signUp_screen.dart';
 
 void main() async {
@@ -39,12 +39,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      /**
+       * Hiển thị thông báo trên top
+       */
+      navigatorKey: NotificationService.navigatorKey,
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: {
         '/': (context) => const IntroductionScreen(),
         '/login': (context) => const LoginScreen(),
-        // '/main': (context) => const MainScreen(),
         '/sign_up': (context) => SignUpScreen(),
       },
       localizationsDelegates: context.localizationDelegates,

@@ -344,7 +344,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
                     : null,
               ),
               const Divider(),
-              if (getCurrentUserRole() != 'member' && member['role'] == 'member') ...[
+              if (getCurrentUserRole() == 'owner' && member['role'] == 'member') ...[
                 ListTile(
                   title: const Text("Bổ nhiệm làm phó nhóm"),
                   onTap: () async {

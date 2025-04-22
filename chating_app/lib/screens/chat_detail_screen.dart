@@ -71,6 +71,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
           }
         } else {
           message['deleteReason'] ??= null;
+          message['timestamp'] ??= DateTime.now().toIso8601String();
           setState(() {
             _messages.insert(0, message);
           });
