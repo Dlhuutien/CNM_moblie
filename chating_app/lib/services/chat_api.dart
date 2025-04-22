@@ -234,6 +234,25 @@ class ChatApi {
     }
   }
 
+  /// Rời khỏi nhóm
+  static Future<void> leaveGroup(String chatId, String userId) async {
+    final url = Uri.parse("$baseUrl/group/leave");
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "chatId": chatId,
+        "userId": int.tryParse(userId),
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      final data = jsonDecode(response.body);
+      throw Exception("Lỗi rời nhóm: ${data['message']}");
+    }
+  }
+
+
   /// Thay đổi vai trò thành viên
   static Future<void> changeGroupRole(String chatId, String userId, String memberToChangeId, String newRole) async {
     final url = Uri.parse("$baseUrl/group/member/role");

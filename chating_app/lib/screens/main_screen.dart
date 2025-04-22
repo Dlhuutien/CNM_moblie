@@ -1,3 +1,4 @@
+import 'package:chating_app/services/notification_poller.dart';
 import 'package:flutter/material.dart';
 import 'chat_screen.dart';
 import 'contact_screen.dart';
@@ -16,6 +17,19 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int currentIndex = 0;
+  late NotificationPoller _poller;
+
+  @override
+  void initState() {
+    super.initState();
+    _poller = NotificationPoller(widget.user);
+    _poller.start();
+  }
+  @override
+  void dispose() {
+    _poller.stop();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
