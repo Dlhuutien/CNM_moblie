@@ -264,7 +264,7 @@ class _GroupListState extends State<GroupList> {
   void initState() {
     super.initState();
     _loadGroups();
-    _groupRefreshTimer = Timer.periodic(Duration(seconds: 2), (_) => _loadGroups());
+    _groupRefreshTimer = Timer.periodic(Duration(seconds: 10), (_) => _loadGroups());
   }
 
   @override

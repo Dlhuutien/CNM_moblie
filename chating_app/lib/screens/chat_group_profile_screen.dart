@@ -201,7 +201,69 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
     }
   }
 
-  @override
+  ///Hàm edit tên, mô tả nhóm
+  Future<void> _editGroupField(String field, String label, String currentValue) async {
+    final controller = TextEditingController(text: currentValue);
+    final newValue = await showDialog<String>(
+      context: context,
+      builder: (context) =>
+          AlertDialog(
+            title: Text("Edit $label"),
+            content: TextField(
+              controller: controller,
+              decoration: InputDecoration(hintText: "Input $label new"),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel")),
+              TextButton(
+                  onPressed: () => Navigator.pop(context, controller.text),
+                  child: const Text("Save")),
+            ],
+          ),
+    );
+
+    if (newValue != null && newValue
+        .trim()
+        .isNotEmpty && newValue != currentValue) {
+      if (field == 'name') {
+        // Gọi API đổi tên nhóm trước
+        try {
+          await ChatApi.renameGroup(widget.chatId, widget.userId, newValue);
+          setState(() {
+            groupName = newValue;
+          });
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Lỗi đổi tên nhóm: $e")),
+          );
+        }
+      } else if (field == 'description') {
+        final response = await http.post(
+          Uri.parse("http://138.2.106.32/chat/update-info"),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            "chatId": widget.chatId,
+            "field": field,
+            "value": newValue.trim(),
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          setState(() {
+            groupDescription = newValue;
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Lỗi cập nhật: ${response.body}")),
+          );
+        }
+      }
+    }
+  }
+
+
+    @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -231,8 +293,16 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
             Text(groupName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             Text(groupDescription, style: const TextStyle(color: Colors.grey)),
             const SizedBox(height: 10),
-            ListTile(leading: const Icon(Icons.edit), title: const Text("Change group name")),
-            ListTile(leading: const Icon(Icons.description), title: const Text("Change description")),
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text("Change group name"),
+              onTap: () => _editGroupField("name", "group name", groupName),
+            ),
+            ListTile(
+              leading: const Icon(Icons.description),
+              title: const Text("Change description"),
+              onTap: () => _editGroupField("description", "description group", groupDescription),
+            ),
             if (isAdmin)
               ListTile(
                 leading: const Icon(Icons.person_add),
