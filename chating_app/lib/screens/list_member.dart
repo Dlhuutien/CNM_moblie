@@ -1,3 +1,5 @@
+import 'package:chating_app/data/user.dart';
+import 'package:chating_app/screens/chat_detail_screen.dart';
 import 'package:chating_app/services/chat_api.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -153,8 +155,12 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
       initialIndex: _isMember ? 0 : widget.initialTabIndex,
       child: Scaffold(
         appBar: AppBar(
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
           title: const Text("Group Members"),
           bottom: TabBar(
+            labelColor: Colors.white,
+            indicatorColor: Colors.white,
             tabs: _isMember
                 ? const [Tab(text: "Members")]
                 : const [
@@ -256,14 +262,28 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
 
     return ListView(
       children: filtered.map((member) {
-        final name = member['name'] ?? '';
+        final isMe = member['userId'].toString() == widget.userId;
+        final name = isMe ? 'Tôi' : member['name'] ?? '';
         final avatar = member['imageUrl'] ?? '';
         final role = member['role'] ?? '';
 
+        String roleText;
+        switch (role) {
+          case 'owner':
+            roleText = 'Trưởng nhóm';
+            break;
+          case 'admin':
+            roleText = 'Phó nhóm';
+            break;
+          default:
+            roleText = 'Thành viên';
+        }
+
         return ListTile(
-          onTap: () => _showMemberInfo(context, member),
+          //Nếu là "Tôi" thì khôg hiện showInfo
+          onTap: isMe ? null : () => _showMemberInfo(context, member),
           title: Text(name),
-          subtitle: Text(role),
+          subtitle: Text(roleText),
           leading: CircleAvatar(
             backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
             child: avatar.isEmpty ? Text(name.isNotEmpty ? name[0] : '?') : null,
@@ -294,12 +314,34 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
                 ),
                 title: Text(member['name'] ?? ''),
                 subtitle: Text(member['role'] ?? ''),
-                trailing: Row(
+                trailing: member['isFriend'] == true
+                    ? Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.message),
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.message),
+                      onPressed: () {
+                        final contactId = member['userId'].toString();
+                        final chatId = [widget.userId, contactId]..sort();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ChatDetailScreen(
+                              name: member['name'] ?? '',
+                              chatId: chatId.join('-'),
+                              userId: widget.userId,
+                              user: member.containsKey('user')
+                                  ? member['user']
+                                  : ObjectUser.empty(),
+                              isGroup: false,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ],
-                ),
+                )
+                    : null,
               ),
               const Divider(),
               if (getCurrentUserRole() != 'member' && member['role'] == 'member') ...[

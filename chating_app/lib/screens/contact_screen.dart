@@ -1,4 +1,5 @@
 import 'package:chating_app/screens/create_group_screen.dart';
+import 'package:chating_app/services/chat_api.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -35,7 +36,7 @@ class ContactScreen extends StatelessWidget {
         body: TabBarView(
           children: [
             FriendList(user: user),
-            GroupList(userId: user.userID),
+            GroupList(user: user),
             NotificationList(userId: user.userID),
           ],
         ),
@@ -103,6 +104,7 @@ class _FriendListState extends State<FriendList> {
                         builder: (context) => ChatDetailScreen(
                           name: friend['name'],
                           chatId: chatId.join('-'),
+                          user: widget.user,
                           userId: widget.user.userID,
                         ),
                       ),
@@ -191,12 +193,63 @@ class _NotificationListState extends State<NotificationList> {
   }
 }
 
-class GroupList extends StatelessWidget {
-  final String userId;
-  const GroupList({super.key, required this.userId});
+class GroupList extends StatefulWidget {
+  final ObjectUser user;
+  const GroupList({super.key, required this.user});
+
+  @override
+  State<GroupList> createState() => _GroupListState();
+}
+
+class _GroupListState extends State<GroupList> {
+  Map<String, List<Map<String, dynamic>>> groupedGroups = {};
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGroups();
+  }
+
+  Future<void> _loadGroups() async {
+    setState(() => isLoading = true);
+    try {
+      final chats = await ChatApi.fetchChatsWithLatestMessage(widget.user.userID);
+      final filtered = chats
+          .where((chat) =>
+      chat["ChatID"].toString().startsWith("group-") &&
+          chat["Status"] != "disbanded")
+          .toList();
+
+      // Sắp xếp theo tên
+      filtered.sort((a, b) {
+        final nameA = (a["chatName"] ?? "").toString().toLowerCase();
+        final nameB = (b["chatName"] ?? "").toString().toLowerCase();
+        return nameA.compareTo(nameB);
+      });
+
+      // Nhóm theo chữ cái đầu
+      final grouped = <String, List<Map<String, dynamic>>>{};
+      for (var group in filtered) {
+        final name = group["chatName"] ?? "Unnamed Group";
+        final firstLetter = name.isNotEmpty ? name[0].toUpperCase() : "#";
+        grouped.putIfAbsent(firstLetter, () => []).add(group);
+      }
+
+      setState(() {
+        groupedGroups = grouped;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      print("Lỗi khi load nhóm: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final sortedKeys = groupedGroups.keys.toList()..sort();
+
     return Column(
       children: [
         Padding(
@@ -205,27 +258,61 @@ class GroupList extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => CreateGroupScreen(userId: userId)),
+                MaterialPageRoute(builder: (context) => CreateGroupScreen(userId: widget.user.userID, onGroupCreated: _loadGroups,)),
               );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               side: const BorderSide(color: Colors.blue),
             ),
-            child: const Text(
-              'Create new group',
-              style: TextStyle(color: Colors.blue),
-            ),
+            child: const Text('Create new group', style: TextStyle(color: Colors.blue)),
           ),
         ),
         Expanded(
-          child: ListView.builder(
-            itemCount: 3,
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : groupedGroups.isEmpty
+              ? const Center(child: Text("Không có nhóm nào"))
+              : ListView.builder(
+            itemCount: sortedKeys.length,
             itemBuilder: (context, index) {
-              return ListTile(
-                leading: const Icon(Icons.group),
-                title: Text('Group ${index + 1}'),
-                trailing: const Icon(Icons.arrow_forward_ios),
+              final letter = sortedKeys[index];
+              final groups = groupedGroups[letter]!;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12),
+                    child: Text(letter, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                  ...groups.map((group) {
+                    final name = group["chatName"] ?? "Unnamed Group";
+                    return ListTile(
+                      leading: CircleAvatar(
+                        radius: 22,
+                        backgroundImage: group["imageUrl"] != null && group["imageUrl"].toString().isNotEmpty
+                            ? NetworkImage(group["imageUrl"])
+                            : const AssetImage('assets/group_default.png') as ImageProvider,
+                      ),
+                      title: Text(name),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ChatDetailScreen(
+                              name: name,
+                              chatId: group["ChatID"],
+                              userId: widget.user.userID,
+                              user: widget.user,
+                              isGroup: true,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }).toList(),
+                ],
               );
             },
           ),

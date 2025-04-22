@@ -133,7 +133,10 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => CreateGroupScreen(userId: widget.userId)),
+                    MaterialPageRoute(builder: (context) =>
+                        CreateGroupScreen(
+                          userId: widget.userId,
+                          initialSelectedUserId: partnerInfo?['userId']?.toString(),)),
                   );
                 }
             ),

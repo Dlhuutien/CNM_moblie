@@ -1,14 +1,19 @@
+import 'dart:convert';
+import 'package:chating_app/data/user.dart';
 import 'package:chating_app/screens/list_member.dart';
+import 'package:chating_app/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:chating_app/services/chat_api.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 
 class ChatGroupProfileScreen extends StatefulWidget {
   final String chatId;
   final String userId;
+  final ObjectUser user;
 
 
-  const ChatGroupProfileScreen({super.key, required this.chatId, required this.userId});
+  const ChatGroupProfileScreen({super.key, required this.chatId, required this.userId, required this.user,});
 
   @override
   State<ChatGroupProfileScreen> createState() => _ChatGroupProfileScreenState();
@@ -37,10 +42,17 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
 
   Future<void> _loadData() async {
     try {
-      final response = await ChatApi.getGroupMembers(widget.chatId, widget.userId);
+      final membersResponse = await ChatApi.getGroupMembers(widget.chatId, widget.userId);
       final messages = await ChatApi.fetchMessages(widget.chatId, widget.userId);
 
-      final currentUser = response.firstWhere((m) => m['userId'].toString() == widget.userId, orElse: () => {});
+      final infoResponse = await http.get(Uri.parse("http://138.2.106.32/chat/${widget.chatId}/info?userId=${widget.userId}"));
+      final infoData = jsonDecode(infoResponse.body);
+      final chatData = infoData['data'];
+
+      final currentUser = membersResponse.firstWhere(
+            (m) => m['userId'].toString() == widget.userId,
+        orElse: () => {},
+      );
       currentRole = currentUser['role'] ?? '';
 
       final images = <String>[];
@@ -70,10 +82,10 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
       }
 
       setState(() {
-        members = response;
-        groupName = "Designer Team"; // Replace with real group name
-        groupDescription = "This is the description"; // Replace with real desc
-        groupImageUrl = members.isNotEmpty ? members.first['imageUrl'] ?? '' : '';
+        members = membersResponse;
+        groupName = chatData['chatName'] ?? 'Unnamed Group';
+        groupDescription = chatData['description'] ?? '';
+        groupImageUrl = chatData['imageUrl'] ?? '';
         imageUrls = images;
         fileMessages = files;
         linkMessages = links;
@@ -84,7 +96,11 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
     }
   }
 
+
+  ///Hàm giải tán nhóm
   void _disbandGroup() async {
+    print("Vai trò hiện tại: $currentRole");
+
     final confirmed = await showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -96,15 +112,93 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
         ],
       ),
     );
+
     if (confirmed == true) {
-      await ChatApi.disbandGroup(widget.chatId, widget.userId);
-      Navigator.pop(context);
+      try {
+        await ChatApi.disbandGroup(widget.chatId, widget.userId);
+
+        await Future.delayed(const Duration(milliseconds: 500)); // Delay nhẹ
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Giải tán nhóm thành công")),
+        );
+
+        await Future.delayed(const Duration(seconds: 1)); // Cho user thấy thông báo
+
+        if (context.mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => MainScreen(user: widget.user, )),
+                (route) => false,
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Lỗi: ${e.toString()}")),
+          );
+        }
+      }
     }
   }
 
+  ///Hàm rời khỏi nhóm
   void _leaveGroup() async {
-    await ChatApi.removeGroupMember(widget.chatId, widget.userId, widget.userId);
-    Navigator.pop(context);
+    final confirmed = await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Leave Group"),
+        content: const Text("Are you sure you want to leave this group?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Leave")),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await ChatApi.removeGroupMember(widget.chatId, widget.userId, widget.userId);
+
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      bool leftGroup = false;
+
+      try {
+        final membersCheck = await ChatApi.getGroupMembers(widget.chatId, widget.userId);
+        final exists = membersCheck.any((m) => m['userId'].toString() == widget.userId);
+        leftGroup = !exists;
+      } catch (e) {
+        leftGroup = true;
+      }
+
+      if (leftGroup && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Đã rời khỏi nhóm")),
+        );
+        await Future.delayed(const Duration(seconds: 1));
+        if (context.mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => MainScreen(user: widget.user)),
+                (route) => false,
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Chưa rời khỏi nhóm, thử lại sau")),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Lỗi: ${e.toString()}")),
+        );
+      }
+    }
   }
 
   @override
@@ -143,8 +237,8 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
               ListTile(
                 leading: const Icon(Icons.person_add),
                 title: const Text("Add new member"),
-                onTap: () {
-                  Navigator.push(
+                onTap: () async {
+                  final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => ListMemberScreen(
@@ -153,7 +247,12 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
                       ),
                     ),
                   );
+
+                  if (result == true) {
+                    _loadData(); // reload lại dữ liệu nếu thêm thành viên thành công
+                  }
                 },
+
               ),
             ListTile(
               leading: const Icon(Icons.exit_to_app, color: Colors.red),
@@ -184,11 +283,26 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            ...members.map((m) => ListTile(
-              leading: CircleAvatar(backgroundImage: NetworkImage(m['imageUrl'] ?? '')),
-              title: Text(m['name'] ?? ''),
-              subtitle: Text(m['role'] ?? ''),
-            )),
+            ...members.map((m) {
+              final role = m['role'] ?? '';
+              String roleText;
+              switch (role) {
+                case 'owner':
+                  roleText = 'Trưởng nhóm';
+                  break;
+                case 'admin':
+                  roleText = 'Phó nhóm';
+                  break;
+                default:
+                  roleText = 'Thành viên';
+              }
+
+              return ListTile(
+                leading: CircleAvatar(backgroundImage: NetworkImage(m['imageUrl'] ?? '')),
+                title: Text(m['name'] ?? ''),
+                subtitle: Text(roleText),
+              );
+            }),
 
             const Divider(),
             const Align(
