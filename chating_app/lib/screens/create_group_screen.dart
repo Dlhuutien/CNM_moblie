@@ -17,6 +17,7 @@ class CreateGroupScreen extends StatefulWidget {
 class _CreateGroupScreenState extends State<CreateGroupScreen> {
   final TextEditingController _groupNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  List<Map<String, dynamic>> _searchResult = [];
 
   List<Map<String, dynamic>> _allFriends = [];
   final Map<String, bool> _selectedFriends = {}; // key là userId (String)
@@ -25,7 +26,38 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   void initState() {
     super.initState();
     _fetchFriends();
+    _phoneController.addListener(() {
+      final input = _phoneController.text.trim();
+      if (input.isNotEmpty && input.length >= 3) {
+        _searchPhone(input);
+      } else {
+        setState(() {
+          _searchResult.clear();
+        });
+      }
+    });
   }
+
+  Future<void> _searchPhone(String phone) async {
+    try {
+      final response = await http.get(
+        Uri.parse("http://138.2.106.32/contact/find?phone=$phone&userId=${widget.userId}"),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          final List<dynamic> users = data['data'];
+          setState(() {
+            _searchResult = users.map((u) => Map<String, dynamic>.from(u)).toList();
+          });
+        }
+      }
+    } catch (e) {
+      print("Lỗi khi tìm theo số điện thoại: $e");
+    }
+  }
+
 
   Future<void> _fetchFriends() async {
     try {
@@ -158,54 +190,53 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                       right: 20,
                       bottom: MediaQuery.of(context).viewInsets.bottom,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const CircleAvatar(
-                          radius: 40,
-                          child: Icon(Icons.group, size: 40),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _groupNameController,
-                          decoration: const InputDecoration(
-                            labelText: "Group name",
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.edit),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const CircleAvatar(
+                            radius: 40,
+                            child: Icon(Icons.group, size: 40),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            const Text("VN (+84)", style: TextStyle(fontSize: 14)),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: TextField(
-                                controller: _phoneController,
-                                decoration: const InputDecoration(
-                                  labelText: "Phone number",
-                                  border: OutlineInputBorder(),
-                                ),
-                                keyboardType: TextInputType.phone,
-                              ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: _groupNameController,
+                            decoration: const InputDecoration(
+                              labelText: "Group name",
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.edit),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          "Friends List",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 350,
-                          child: ListView(
-                            shrinkWrap: true,
-                            children: _allFriends.map((friend) {
-                              final id = friend['contactId'].toString();
-                              final name = friend['name'];
-                              final phone = friend['phone'];
-                              final avatar = friend['imageUrl'] ?? '';
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              const Text("VN (+84)", style: TextStyle(fontSize: 14)),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: TextField(
+                                  controller: _phoneController,
+                                  decoration: const InputDecoration(
+                                    labelText: "Phone number",
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  keyboardType: TextInputType.phone,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          if (_searchResult.isNotEmpty) ...[
+                            const Text(
+                              "Kết quả tìm kiếm",
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            const SizedBox(height: 8),
+                            ..._searchResult.map((user) {
+                              final id = user['userId'].toString();
+                              final name = user['name'];
+                              final phone = user['phone'];
+                              final avatar = user['imageUrl'] ?? '';
+
                               return CheckboxListTile(
                                 value: _selectedFriends[id] ?? false,
                                 onChanged: (val) {
@@ -219,34 +250,66 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                                     ? CircleAvatar(backgroundImage: NetworkImage(avatar))
                                     : CircleAvatar(child: Text(name[0])),
                               );
-                            }).toList(),
+                            }),
+                            const SizedBox(height: 16),
+                          ],
+
+                          const Text(
+                            "Friends List",
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
-                        ),
-                        const Spacer(),
-                        ElevatedButton(
-                          onPressed: createGroup,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            height: 350,
+                            child: ListView(
+                              shrinkWrap: true,
+                              children: _allFriends.map((friend) {
+                                final id = friend['contactId'].toString();
+                                final name = friend['name'];
+                                final phone = friend['phone'];
+                                final avatar = friend['imageUrl'] ?? '';
+                                return CheckboxListTile(
+                                  value: _selectedFriends[id] ?? false,
+                                  onChanged: (val) {
+                                    setState(() {
+                                      _selectedFriends[id] = val ?? false;
+                                    });
+                                  },
+                                  title: Text(name),
+                                  subtitle: Text(phone),
+                                  secondary: avatar.isNotEmpty
+                                      ? CircleAvatar(backgroundImage: NetworkImage(avatar))
+                                      : CircleAvatar(child: Text(name[0])),
+                                );
+                              }).toList(),
                             ),
                           ),
-                          child: const Text(
-                            "Create Group",
-                            style: TextStyle(fontSize: 16, color: Colors.white),
+
+                          const Spacer(),
+                          ElevatedButton(
+                            onPressed: createGroup,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              "Create Group",
+                              style: TextStyle(fontSize: 16, color: Colors.white),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text(
-                            "Cancel",
-                            style: TextStyle(color: Colors.red),
+                          const SizedBox(height: 10),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text(
+                              "Cancel",
+                              style: TextStyle(color: Colors.red),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      )
                   ),
                 ),
               ),

@@ -63,7 +63,7 @@ class NotificationPoller {
         final removedGroupIds = _knownGroupIds.difference(currentGroupIds);
         for (var groupId in removedGroupIds) {
           final name = _groupNames[groupId] ?? "một nhóm";
-          NotificationService.showBanner("Bạn đã bị đuổi khỏi nhóm \"$name\"");
+          NotificationService.showBanner("Bạn đã ra khỏi nhóm \"$name\"");
         }
 
         // CẬP NHẬT TÊN NHÓM (chỉ cập nhật sau khi xử lý removedGroupIds)

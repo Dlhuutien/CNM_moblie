@@ -23,7 +23,12 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _loadChats();
-    _refreshTimer = Timer.periodic(Duration(seconds: 1), (_) => _loadChats());
+    _refreshTimer = Timer.periodic(Duration(seconds: 5), (_) {
+      if (mounted && ModalRoute.of(context)?.isCurrent == true) {
+        _loadChats();
+      }
+    });
+
   }
 
   @override
@@ -35,6 +40,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _loadChats() async {
     final newList = await ChatApi.fetchChatsWithLatestMessage(widget.user.userID);
 
+    if (!mounted) return;
     if (!listEquals(newList, _chats)) {
       setState(() {
         _chats = newList;

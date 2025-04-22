@@ -29,6 +29,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
   List<Map<String, dynamic>> _filteredList = [];
   bool _isMember = false;
   bool _dataLoaded = false;
+  List<Map<String, dynamic>> _searchResult = [];
 
   ///Hàm lấy role user
   String getCurrentUserRole() {
@@ -55,16 +56,48 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
 
   ///Hàm chức năng tìm kiếm user
   void _onSearchChanged() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      final listToFilter = _isMember ? _groupMembers : _friendsNotInGroup;
-      _filteredList = listToFilter.where((item) {
-        final name = item['name']?.toLowerCase() ?? '';
-        final phone = item['phone']?.toLowerCase() ?? '';
-        return name.contains(query) || phone.contains(query);
-      }).toList();
-    });
+    final query = _searchController.text.trim();
+    if (query.length >= 3 && RegExp(r'^\d+$').hasMatch(query)) {
+      _searchByPhone(query); // gọi tìm theo số điện thoại
+    } else {
+      setState(() {
+        final listToFilter = _isMember ? _groupMembers : _friendsNotInGroup;
+        _filteredList = listToFilter.where((item) {
+          final name = item['name']?.toLowerCase() ?? '';
+          final phone = item['phone']?.toLowerCase() ?? '';
+          return name.contains(query.toLowerCase()) || phone.contains(query.toLowerCase());
+        }).toList();
+      });
+    }
   }
+
+  Future<void> _searchByPhone(String phone) async {
+    try {
+      final response = await http.get(
+        Uri.parse("http://138.2.106.32/contact/find?phone=$phone&userId=${widget.userId}"),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          final List<dynamic> users = data['data'];
+          setState(() {
+            _searchResult = users.map((u) => Map<String, dynamic>.from(u)).toList();
+          });
+        } else {
+          setState(() {
+            _searchResult.clear();
+          });
+        }
+      } else {
+        print("Lỗi khi tìm: ${response.body}");
+      }
+    } catch (e) {
+      print("Lỗi khi tìm theo số điện thoại: $e");
+    }
+  }
+
+
 
   Future<void> _loadData() async {
     try {
@@ -211,28 +244,69 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
     return Column(
       children: [
         Expanded(
-          child: ListView(
-            children: filtered.map((friend) {
-              final id = friend['contactId'].toString();
-              final name = friend['name'] ?? '';
-              final phone = friend['phone'] ?? '';
-              final avatar = friend['imageUrl'] ?? '';
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Column(
+                children: [
+                  if (_searchResult.isNotEmpty)
+                    ..._searchResult.map((user) {
+                      final id = user['userId'].toString();
+                      final name = user['name'];
+                      final phone = user['phone'];
+                      final avatar = user['imageUrl'] ?? '';
 
-              return CheckboxListTile(
-                value: _selectedFriends[id] ?? false,
-                onChanged: (val) {
-                  setState(() {
-                    _selectedFriends[id] = val ?? false;
-                  });
-                },
-                title: Text(name),
-                subtitle: Text(phone),
-                secondary: CircleAvatar(
-                  backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
-                  child: avatar.isEmpty ? Text(name.isNotEmpty ? name[0] : '?') : null,
-                ),
-              );
-            }).toList(),
+                      return CheckboxListTile(
+                        value: _selectedFriends[id] ?? false,
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedFriends[id] = val ?? false;
+                            if (!_friendsNotInGroup.any((f) =>
+                            f['contactId'].toString() == id)) {
+                              _friendsNotInGroup.add({
+                                'contactId': id,
+                                'name': name,
+                                'phone': phone,
+                                'imageUrl': avatar,
+                              });
+                            }
+                          });
+                        },
+                        title: Text(name),
+                        subtitle: Text(phone),
+                        secondary: avatar.isNotEmpty
+                            ? CircleAvatar(backgroundImage: NetworkImage(
+                            avatar))
+                            : CircleAvatar(child: Text(name[0])),
+                      );
+                    }),
+                  ...filtered.map((friend) {
+                    final id = friend['contactId'].toString();
+                    final name = friend['name'] ?? '';
+                    final phone = friend['phone'] ?? '';
+                    final avatar = friend['imageUrl'] ?? '';
+
+                    return CheckboxListTile(
+                      value: _selectedFriends[id] ?? false,
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedFriends[id] = val ?? false;
+                        });
+                      },
+                      title: Text(name),
+                      subtitle: Text(phone),
+                      secondary: CircleAvatar(
+                        backgroundImage: avatar.isNotEmpty ? NetworkImage(
+                            avatar) : null,
+                        child: avatar.isEmpty ? Text(
+                            name.isNotEmpty ? name[0] : '?') : null,
+                      ),
+                    );
+                  }).toList(),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            ),
           ),
         ),
         ElevatedButton(
@@ -240,15 +314,16 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blue,
             padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8)),
           ),
-          child: const Text("Add Selected Members", style: TextStyle(color: Colors.white)),
+          child: const Text(
+              "Add Selected Members", style: TextStyle(color: Colors.white)),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 20),
       ],
     );
   }
-
   Widget _buildMemberListTab() {
     final query = _searchController.text.toLowerCase();
 

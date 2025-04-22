@@ -289,5 +289,26 @@ class ChatApi {
       throw Exception("Lỗi khi giải tán nhóm: ${response.body}");
     }
   }
+
+  ///Đổi tên nhóm chat
+  static Future<void> renameGroup(String chatId, String userId, String newName) async {
+    final url = Uri.parse("$baseUrl/group/rename");
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "chatId": chatId,
+        "userId": int.tryParse(userId),
+        "newName": newName,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      final data = jsonDecode(response.body);
+      throw Exception("Lỗi đổi tên nhóm: ${data['message']}");
+    }
+  }
+
 }
+
 

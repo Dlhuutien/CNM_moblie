@@ -318,10 +318,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                 height: 300,
                 child: EmojiPicker(
                   onEmojiSelected: (category, emoji) {
-                    _messageController.text += emoji.emoji;
-                    _messageController.selection = TextSelection.fromPosition(
-                      TextPosition(offset: _messageController.text.length),
-                    );
                   },
                   onBackspacePressed: () {
                     _messageController.text = _messageController.text.characters.skipLast(1).toString();
