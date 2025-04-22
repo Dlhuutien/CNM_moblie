@@ -28,13 +28,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
         final chats = snapshot.data ?? [];
 
-        // Lọc theo tab
-        final filteredChats = chats.where((chat) {
+        /**
+         *  Lọc theo tab và loại bỏ nhóm đã giải tán
+         */
+        final filteredChats = chats
+            .where((chat) => chat["Status"] != "disbanded")
+            .where((chat) {
           if (_selectedTab == "All") return true;
           if (_selectedTab == "Group") return chat["ChatID"].toString().startsWith("group-");
-          if (_selectedTab == "Unread") return chat["isUnread"] == true; // Nếu có field này
+          if (_selectedTab == "Unread") return chat["isUnread"] == true;
           return true;
         }).toList();
+
 
         return SingleChildScrollView(
           child: Column(
@@ -125,6 +130,7 @@ class _ChatScreenState extends State<ChatScreen> {
               name: name,
               chatId: chatId,
               userId: widget.user.userID,
+              user: widget.user,
               isGroup: isGroup,
             ),
           ),

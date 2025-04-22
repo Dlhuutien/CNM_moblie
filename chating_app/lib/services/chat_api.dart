@@ -261,10 +261,11 @@ class ChatApi {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         "chatId": chatId,
-        "userId": userId,
+        // "userId": userId,
+        "userId": int.tryParse(userId),
       }),
     );
-
+    print("Gửi yêu cầu giải tán nhóm với chatId: $chatId, userId: $userId");
     if (response.statusCode != 200) {
       throw Exception("Lỗi khi giải tán nhóm: ${response.body}");
     }

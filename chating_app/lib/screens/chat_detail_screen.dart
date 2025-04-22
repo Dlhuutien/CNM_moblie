@@ -1,5 +1,6 @@
 
 import 'dart:io';
+import 'package:chating_app/data/user.dart';
 import 'package:chating_app/screens/chat_group_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -17,6 +18,7 @@ class ChatDetailScreen extends StatefulWidget {
   final String name;
   final String chatId;
   final String userId;
+  final ObjectUser user;
   final bool isGroup;
 
   const ChatDetailScreen({
@@ -24,6 +26,7 @@ class ChatDetailScreen extends StatefulWidget {
     required this.name,
     required this.chatId,
     required this.userId,
+    required this.user,
     this.isGroup = false,
   });
 
@@ -239,7 +242,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                 context,
                 MaterialPageRoute(
                   builder: (_) => widget.isGroup
-                      ? ChatGroupProfileScreen(chatId: widget.chatId, userId: widget.userId)
+                      ? ChatGroupProfileScreen(chatId: widget.chatId, userId: widget.userId, user: widget.user,)
                       : ChatProfileScreen(chatId: widget.chatId, userId: widget.userId),
                 ),
               );

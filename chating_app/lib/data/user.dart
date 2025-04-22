@@ -66,4 +66,19 @@ class ObjectUser {
     required this.location,
     required this.password,
   });
+
+  factory ObjectUser.empty() {
+    return ObjectUser(
+      userID: '',
+      soDienThoai: '',
+      hoTen: '',
+      gender: '',
+      birthday: '',
+      email: '',
+      work: '',
+      image: '',
+      location: '',
+      password: '',
+    );
+  }
 }

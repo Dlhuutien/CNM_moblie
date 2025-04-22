@@ -4,7 +4,11 @@ import 'dart:convert';
 
 class CreateGroupScreen extends StatefulWidget {
   final String userId;
-  const CreateGroupScreen({super.key, required this.userId});
+  final void Function()? onGroupCreated;
+  //Tự tick chọn user đang chat 1-1 để tạo group
+  final String? initialSelectedUserId;
+
+  const CreateGroupScreen({super.key, required this.userId, this.onGroupCreated, this.initialSelectedUserId, });
 
   @override
   State<CreateGroupScreen> createState() => _CreateGroupScreenState();
@@ -44,6 +48,10 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           for (var friend in friends) {
             final id = friend['contactId'].toString();
             _selectedFriends[id] = false;
+          }
+          if (widget.initialSelectedUserId != null &&
+              _selectedFriends.containsKey(widget.initialSelectedUserId)) {
+            _selectedFriends[widget.initialSelectedUserId!] = true;
           }
         });
       }
@@ -102,6 +110,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       print("Body: ${response.body}");
 
       if (response.statusCode == 201 && data["success"] == true) {
+        widget.onGroupCreated?.call();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Group created successfully")),
         );
