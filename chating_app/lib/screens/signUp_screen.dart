@@ -2,6 +2,7 @@ import 'package:chating_app/data/information.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:chating_app/services/env_config.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -20,7 +21,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? errorMessage;
 
   Future<bool> _isPhoneExists(String phone) async {
-    final url = Uri.parse('http://138.2.106.32/user/account?phone=$phone');
+    final url = Uri.parse('${EnvConfig.baseUrl}/user/account?phone=$phone');
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);

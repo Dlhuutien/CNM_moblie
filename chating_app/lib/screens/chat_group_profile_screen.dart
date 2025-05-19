@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:chating_app/services/chat_api.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'package:chating_app/services/env_config.dart';
 
 class ChatGroupProfileScreen extends StatefulWidget {
   final String chatId;
@@ -45,7 +46,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
       final membersResponse = await ChatApi.getGroupMembers(widget.chatId, widget.userId);
       final messages = await ChatApi.fetchMessages(widget.chatId, widget.userId);
 
-      final infoResponse = await http.get(Uri.parse("http://138.2.106.32/chat/${widget.chatId}/info?userId=${widget.userId}"));
+      final infoResponse = await http.get(Uri.parse("${EnvConfig.baseUrl}/chat/${widget.chatId}/info?userId=${widget.userId}"));
       final infoData = jsonDecode(infoResponse.body);
       final chatData = infoData['data'];
 
@@ -240,7 +241,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
         }
       } else if (field == 'description') {
         final response = await http.post(
-          Uri.parse("http://138.2.106.32/chat/update-info"),
+          Uri.parse("${EnvConfig.baseUrl}/chat/update-info"),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             "chatId": widget.chatId,

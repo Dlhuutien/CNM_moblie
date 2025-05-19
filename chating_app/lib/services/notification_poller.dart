@@ -4,6 +4,7 @@ import 'package:chating_app/data/user.dart';
 import 'package:chating_app/services/chat_api.dart';
 import 'package:chating_app/services/notification_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:chating_app/services/env_config.dart';
 
 class NotificationPoller {
   final ObjectUser user;
@@ -26,11 +27,13 @@ class NotificationPoller {
   }
 
   void _startFriendRequestPolling() {
+
     _friendRequestTimer =
         Timer.periodic(const Duration(seconds: 10), (_) async {
           try {
-            final res = await http.get(Uri.parse(
-                "http://138.2.106.32/contact/requests?userId=${user.userID}"));
+            final baseUrl = EnvConfig.baseUrl;
+            final url = "$baseUrl/contact/requests?userId=${user.userID}";
+            final res = await http.get(Uri.parse(url));
             if (res.statusCode == 200) {
               final data = jsonDecode(res.body);
               final List requests = data['data'];

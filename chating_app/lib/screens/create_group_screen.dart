@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:chating_app/services/env_config.dart';
 
 class CreateGroupScreen extends StatefulWidget {
   final String userId;
@@ -41,7 +42,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   Future<void> _searchPhone(String phone) async {
     try {
       final response = await http.get(
-        Uri.parse("http://138.2.106.32/contact/find?phone=$phone&userId=${widget.userId}"),
+          Uri.parse("${EnvConfig.baseUrl}/contact/find?phone=$phone&userId=${widget.userId}"),
       );
 
       if (response.statusCode == 200) {
@@ -62,7 +63,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   Future<void> _fetchFriends() async {
     try {
       final response = await http.get(
-        Uri.parse("http://138.2.106.32/contact/list?userId=${widget.userId}"),
+        Uri.parse("${EnvConfig.baseUrl}/contact/list?userId=${widget.userId}"),
       );
 
       if (response.statusCode == 200) {
@@ -120,7 +121,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       return;
     }
 
-    final url = Uri.parse("http://138.2.106.32/group/create");
+    final url = Uri.parse("${EnvConfig.baseUrl}/group/create");
     final headers = {'Content-Type': 'application/json'};
     final body = jsonEncode({
       "name": name,

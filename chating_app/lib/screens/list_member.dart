@@ -4,6 +4,7 @@ import 'package:chating_app/services/chat_api.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:chating_app/services/env_config.dart';
 
 class ListMemberScreen extends StatefulWidget {
   final String userId;
@@ -74,7 +75,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
   Future<void> _searchByPhone(String phone) async {
     try {
       final response = await http.get(
-        Uri.parse("http://138.2.106.32/contact/find?phone=$phone&userId=${widget.userId}"),
+        Uri.parse("${EnvConfig.baseUrl}/contact/find?phone=$phone&userId=${widget.userId}"),
       );
 
       if (response.statusCode == 200) {

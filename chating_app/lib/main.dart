@@ -6,12 +6,24 @@ import 'package:easy_localization/easy_localization.dart';
 import 'screens/introduction_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/signUp_screen.dart';
+import 'package:chating_app/services/env_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load .env file trước khi dùng EnvConfig
+  // await dotenv.load(fileName: ".env");
+  // await EnvConfig.init();
+  // print("BASE_URL hiện tại: ${EnvConfig.baseUrl}");
+
+  try {
+    await EnvConfig.init();
+  } catch (e) {
+    print("Lỗi khi load env: $e");
+  }
   await EasyLocalization.ensureInitialized();
 
-  WidgetsFlutterBinding.ensureInitialized();
+  // WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: kIsWeb
         ? FirebaseOptions(

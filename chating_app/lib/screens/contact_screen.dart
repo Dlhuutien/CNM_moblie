@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:chating_app/data/user.dart';
 import 'package:chating_app/screens/chat_detail_screen.dart';
 import 'package:flutter/foundation.dart';
+import 'package:chating_app/services/env_config.dart';
 
 class ContactScreen extends StatelessWidget {
   final ObjectUser user;
@@ -70,7 +71,7 @@ class _FriendListState extends State<FriendList> {
   Future<void> _fetchFriends() async {
     setState(() => isLoading = true);
     final response = await http.get(Uri.parse(
-        "http://138.2.106.32/contact/list?userId=${widget.user.userID}"));
+        "${EnvConfig.baseUrl}/contact/list?userId=${widget.user.userID}"));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final List<Map<String, dynamic>> sorted = List<Map<String, dynamic>>.from(
@@ -194,7 +195,7 @@ class _NotificationListState extends State<NotificationList> {
 
   /// Gọi API lấy danh sách lời mời kết bạn
   Future<void> _fetchRequests() async {
-    final response = await http.get(Uri.parse("http://138.2.106.32/contact/requests?userId=${widget.userId}"));
+    final response = await http.get(Uri.parse("${EnvConfig.baseUrl}/contact/requests?userId=${widget.userId}"));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       setState(() {
@@ -206,7 +207,7 @@ class _NotificationListState extends State<NotificationList> {
   /// Gửi yêu cầu chấp nhận lời mời kết bạn
   Future<void> _acceptRequest(String senderId) async {
     final response = await http.post(
-      Uri.parse("http://138.2.106.32/contact/accept?userId=${widget.userId}&senderId=$senderId"),
+      Uri.parse("${EnvConfig.baseUrl}/contact/accept?userId=${widget.userId}&senderId=$senderId"),
     );
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Đã chấp nhận")));
