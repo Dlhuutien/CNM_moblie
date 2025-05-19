@@ -91,7 +91,7 @@ class WebSocketService {
     }
   }
 
-  void sendMessage(String content) {
+  void sendMessage(String content, String senderName, String senderImage) {
     if (_socket == null) {
       print("Socket chưa được khởi tạo.");
       return;
@@ -103,6 +103,8 @@ class WebSocketService {
       "messagePayload": {
         "type": "text",
         "content": content,
+        "senderName": senderName,
+        "senderImage": senderImage,
       },
     };
 

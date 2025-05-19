@@ -23,7 +23,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _loadChats();
-    _refreshTimer = Timer.periodic(Duration(seconds: 5), (_) {
+    _refreshTimer = Timer.periodic(Duration(seconds: 15), (_) {
       if (mounted && ModalRoute.of(context)?.isCurrent == true) {
         _loadChats();
       }
