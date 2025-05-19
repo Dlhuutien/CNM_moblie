@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chating_app/screens/forgot_pass_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:chating_app/services/env_config.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -92,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       // 5. Gọi API để kiểm tra user trong hệ thống
       final checkResponse = await http.get(
-        Uri.parse("http://138.2.106.32/user/account?email=$email"),
+        Uri.parse("${EnvConfig.baseUrl}/user/account?email=$email"),
       );
 
       print("Response body: ${checkResponse.body}");
@@ -122,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
         } else {
           // Không có user sẽ tạo mới
           final signupResponse = await http.post(
-            Uri.parse("http://138.2.106.32/user/signup"),
+            Uri.parse("${EnvConfig.baseUrl}/user/signup"),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
               'name': user?.displayName ?? '',

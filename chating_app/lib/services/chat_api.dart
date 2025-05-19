@@ -3,9 +3,10 @@ import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
+import 'package:chating_app/services/env_config.dart';
 
 class ChatApi {
-  static const String baseUrl = "http://138.2.106.32";
+  static String get baseUrl => EnvConfig.baseUrl;
 
   ///Lấy các user đã nhắn tin
   static Future<List<Map<String, dynamic>>> fetchChatsWithLatestMessage(String userId) async {

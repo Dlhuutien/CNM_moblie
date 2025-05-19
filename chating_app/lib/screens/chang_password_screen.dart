@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:chating_app/services/env_config.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   final String? phone;
@@ -37,7 +38,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
       try {
         final response = await http.post(
-          Uri.parse("http://138.2.106.32/user/changepass"),
+          Uri.parse("${EnvConfig.baseUrl}/user/changepass"),
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({
             "phone": widget.phone,

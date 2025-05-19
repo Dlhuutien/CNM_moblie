@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:chating_app/services/env_config.dart';
 
 class SearchUserScreen extends StatefulWidget {
   final ObjectUser user;
@@ -67,7 +68,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse("http://138.2.106.32/contact/find?phone=$phone&userId=$currentUserID"),
+        Uri.parse("${EnvConfig.baseUrl}/contact/find?phone=$phone&userId=$currentUserID"),
       );
 
       if (response.statusCode == 200) {
@@ -183,7 +184,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
   Future<void> _sendFriendRequest(int contactId) async {
     try {
       final response = await http.post(
-        Uri.parse("http://138.2.106.32/contact/add?userId=$currentUserID&contactId=$contactId"),
+        Uri.parse("${EnvConfig.baseUrl}/contact/add?userId=$currentUserID&contactId=$contactId"),
       );
       final res = json.decode(response.body);
       _showMessage(res['message'] ?? "Đã gửi lời mời kết bạn");

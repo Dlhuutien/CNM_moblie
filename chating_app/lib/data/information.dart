@@ -3,11 +3,12 @@ import 'package:chating_app/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'user.dart';
+import 'package:chating_app/services/env_config.dart';
 
 class ApiService {
   static Future<ObjectUser?> login(BuildContext context, String phone, String password) async {
     try {
-      final url = Uri.parse("http://138.2.106.32/user/login");
+      final url = Uri.parse("${EnvConfig.baseUrl}/user/login");
       final res = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -61,7 +62,7 @@ class ApiServiceSignUp {
   /// Trả về `true` nếu đăng ký thành công, `false` nếu thất bại
   static Future<bool> register(BuildContext context, String name, String phone, String password) async {
     try {
-      final url = Uri.parse("http://138.2.106.32/user/signup");
+      final url = Uri.parse("${EnvConfig.baseUrl}/user/signup");
       final res = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},

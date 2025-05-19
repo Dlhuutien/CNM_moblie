@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:chating_app/data/user.dart';
 import 'package:http_parser/http_parser.dart'; // dùng cho MediaType
-
+import 'package:chating_app/services/env_config.dart';
 
 
 class ProfileScreen extends StatefulWidget {
@@ -28,7 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> updateUserField(String field, String newValue) async {
     final updatedUser = _editableUser.copyWithField(field, newValue);
 
-    final url = Uri.parse("http://138.2.106.32/user/update");
+    final url = Uri.parse("${EnvConfig.baseUrl}/user/update");
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
@@ -60,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
-      final url = Uri.parse("http://138.2.106.32/user/upload");
+      final url = Uri.parse("${EnvConfig.baseUrl}/user/upload");
 
       final fileBytes = await pickedFile.readAsBytes(); // Đọc file thành byte array
       final fileName = pickedFile.name;
