@@ -1,4 +1,3 @@
-
 import 'dart:io';
 import 'package:chating_app/data/user.dart';
 import 'package:chating_app/screens/chat_group_profile_screen.dart';
@@ -117,7 +116,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
   void _sendMessage() {
     final content = _messageController.text.trim();
     if (content.isNotEmpty) {
-      _webSocketService?.sendMessage(content);
+      _webSocketService?.sendMessage(content, widget.user.hoTen, widget.user.image);
       _messageController.clear();
     }
   }
