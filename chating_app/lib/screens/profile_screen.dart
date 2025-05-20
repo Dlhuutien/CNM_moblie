@@ -261,7 +261,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildInfoRow('Gender:', 'gender', _editableUser.gender),
                   _buildInfoRow('Birthday:', 'birthday', _formatDateOnly(_editableUser.birthday)),
                   _buildInfoRow('Email:', 'email', _editableUser.email),
-                  _buildInfoRow('Work:', 'work', _editableUser.work),
+                  // _buildInfoRow('Work:', 'work', _editableUser.work),
                   _buildInfoRow('Location:', 'location', _editableUser.location),
                 ],
               ),

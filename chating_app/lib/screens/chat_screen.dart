@@ -23,12 +23,11 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _loadChats();
-    _refreshTimer = Timer.periodic(Duration(seconds: 15), (_) {
+    _refreshTimer = Timer.periodic(Duration(seconds: 5), (_) {
       if (mounted && ModalRoute.of(context)?.isCurrent == true) {
         _loadChats();
       }
     });
-
   }
 
   @override
@@ -65,8 +64,8 @@ class _ChatScreenState extends State<ChatScreen> {
     final filteredChats = _chats
         .where((chat) => chat["Status"] != "disbanded")
         .where((chat) {
-      final msg = chat["latestMessage"]?["Content"] ?? "";
-      if (msg.toString().trim().isEmpty) return false;
+      // final msg = chat["lastMessage"]?["content"] ?? "";
+      // if (msg.toString().trim().isEmpty) return false;
       if (_selectedTab == "All") return true;
       if (_selectedTab == "Group") return chat["ChatID"].toString().startsWith("group-");
       if (_selectedTab == "Unread") return chat["isUnread"] == true;
@@ -107,8 +106,8 @@ class _ChatScreenState extends State<ChatScreen> {
               chatId: chat["ChatID"],
               avatarUrl: chat["imageUrl"] ?? "",
               name: chat["chatName"],
-              message: chat["latestMessage"]?["Content"] ?? "",
-              time: _formatTime(chat["latestMessage"]?["Timestamp"]),
+              message: chat["lastMessage"]?["content"] ?? "",
+              time: _formatTime(chat["lastMessage"]?["timestamp"]),
               isGroup: chat["ChatID"].toString().startsWith("group-"),
             ),
         ],

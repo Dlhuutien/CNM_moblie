@@ -18,15 +18,8 @@ class ChatApi {
       List<Map<String, dynamic>> chatsWithMessages = [];
 
       for (var chat in chats) {
-        final chatId = chat["ChatID"];
-        final infoResponse = await http.get(Uri.parse("$baseUrl/chat/$chatId/info?userId=$userId"));
-
-        if (infoResponse.statusCode == 200) {
-          final infoData = json.decode(infoResponse.body);
-          final latestMessage = infoData["data"]["latestMessage"];
-          chat["latestMessage"] = latestMessage;
-          chatsWithMessages.add(Map<String, dynamic>.from(chat));
-        }
+        chat["latestMessage"] = chat["lastMessage"];
+        chatsWithMessages.add(Map<String, dynamic>.from(chat));
       }
 
       return chatsWithMessages;
