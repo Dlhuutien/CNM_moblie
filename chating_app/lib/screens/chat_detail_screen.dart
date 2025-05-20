@@ -42,6 +42,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
   bool _isRecording = false;
   WebSocketService? _webSocketService;
 
+  //Tìm kiếm
+  bool _isSearching = false;
+  TextEditingController _searchController = TextEditingController();
+  List<Map<String, dynamic>> _searchResults = [];
+
+  //Số lượng search tin nhắn trùng
+  int _currentSearchIndex = 0;
+  final _listViewController = ScrollController();
+
+
   @override
   void initState() {
     super.initState();
@@ -219,17 +229,68 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     }
   }
 
+  void _scrollToSearchResult() {
+    final targetMsgId = _searchResults[_currentSearchIndex]['messageId'];
+    final indexInAll = _messages.indexWhere((m) => m['messageId'] == targetMsgId);
+
+    if (indexInAll != -1) {
+      _listViewController.animateTo(
+        indexInAll * 100.0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(),
-        title: Text(widget.name),
+        title: _isSearching
+            ? TextField(
+          controller: _searchController,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Tìm kiếm tin nhắn...',
+            border: InputBorder.none,
+          ),
+          onChanged: (query) {
+            setState(() {
+              _searchResults = _messages
+                  .where((msg) =>
+              msg['content'] != null &&
+                  msg['content'].toLowerCase().contains(query.toLowerCase()))
+                  .toList();
+              _currentSearchIndex = 0;
+              if (_searchResults.isNotEmpty) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _scrollToSearchResult();
+                });
+              }
+            });
+          },
+        )
+            : Text(widget.name),
         actions: [
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                if (_isSearching) {
+                  _isSearching = false;
+                  _searchController.clear();
+                  _searchResults.clear();
+                  _currentSearchIndex = 0;
+                } else {
+                  _isSearching = true;
+                }
+              });
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.call),
             onPressed: () {
-              // TODO: Thêm logic gọi điện nếu có
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Chức năng gọi sẽ được cập nhật sau")),
               );
@@ -242,7 +303,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                 context,
                 MaterialPageRoute(
                   builder: (_) => widget.isGroup
-                      ? ChatGroupProfileScreen(chatId: widget.chatId, userId: widget.userId, user: widget.user,)
+                      ? ChatGroupProfileScreen(chatId: widget.chatId, userId: widget.userId, user: widget.user)
                       : ChatProfileScreen(chatId: widget.chatId, userId: widget.userId),
                 ),
               );
@@ -254,23 +315,61 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
         onTap: _dismissEmojiPicker,
         child: Column(
           children: [
+            if (_isSearching && _searchResults.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4),
+                child: Row(
+                  children: [
+                    Text(
+                      "${_currentSearchIndex + 1}/${_searchResults.length}",
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios),
+                      onPressed: () {
+                        if (_currentSearchIndex > 0) {
+                          setState(() => _currentSearchIndex--);
+                          _scrollToSearchResult();
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_forward_ios),
+                      onPressed: () {
+                        if (_currentSearchIndex < _searchResults.length - 1) {
+                          setState(() => _currentSearchIndex++);
+                          _scrollToSearchResult();
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
             Expanded(
               child: ListView.builder(
+                controller: _listViewController,
                 reverse: true,
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
                   final message = _messages[index];
                   final isUserMessage = message['userId'].toString() == widget.userId;
+                  final isCurrentSearchMatch = _searchResults.isNotEmpty &&
+                      _searchResults[_currentSearchIndex]['messageId'] == message['messageId'];
+
                   return MessageCard(
+                    key: ValueKey(message['messageId']),
                     message: message,
                     isUserMessage: isUserMessage,
                     formatTimestamp: _formatTimestamp,
                     onAction: _handleMessageAction,
                     isGroup: widget.isGroup,
+                    highlight: isCurrentSearchMatch,
                   );
                 },
-              ),
+              )
             ),
+            if (!_isSearching)
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(

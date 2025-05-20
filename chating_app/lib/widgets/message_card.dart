@@ -16,6 +16,11 @@ class MessageCard extends StatefulWidget {
   final MessageActionCallback onAction;
   final bool isGroup; // Thêm isGroup
 
+  //highlight tin nhắn search
+  final bool highlight;
+  final bool isCurrentSearch;
+
+
   const MessageCard({
     Key? key,
     required this.message,
@@ -23,6 +28,8 @@ class MessageCard extends StatefulWidget {
     required this.formatTimestamp,
     required this.onAction,
     this.isGroup = false,
+    this.highlight = false,
+    this.isCurrentSearch = false,
   }) : super(key: key);
 
   @override
@@ -63,8 +70,16 @@ class _MessageCardState extends State<MessageCard> {
             ),
             padding: const EdgeInsets.all(10),
             margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+            // decoration: BoxDecoration(
+            //   color: widget.isUserMessage ? const Color(0xFFE0ECFC) : Colors.grey[200],
+            //   borderRadius: BorderRadius.circular(12),
+            // ),
             decoration: BoxDecoration(
-              color: widget.isUserMessage ? const Color(0xFFE0ECFC) : Colors.grey[200],
+              color: widget.isCurrentSearch
+                  ? Colors.yellow.withOpacity(0.5)
+                  : (widget.highlight
+                  ? Colors.yellow.withOpacity(0.2)
+                  : (widget.isUserMessage ? const Color(0xFFE0ECFC) : Colors.grey[200])),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(

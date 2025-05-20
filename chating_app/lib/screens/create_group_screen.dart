@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:chating_app/services/env_config.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
+
 
 class CreateGroupScreen extends StatefulWidget {
   final String userId;
@@ -22,6 +25,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
   List<Map<String, dynamic>> _allFriends = [];
   final Map<String, bool> _selectedFriends = {}; // key là userId (String)
+  String? _groupImageUrl;  // dùng để lưu URL ảnh nhóm sau khi upload
 
   @override
   void initState() {
@@ -93,6 +97,48 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     }
   }
 
+  Future<void> _pickAndUploadGroupImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      final url = Uri.parse("${EnvConfig.baseUrl}/user/upload");
+
+      final fileBytes = await pickedFile.readAsBytes();
+      final fileName = pickedFile.name;
+
+      var request = http.MultipartRequest("POST", url);
+      request.files.add(http.MultipartFile.fromBytes(
+        "file",
+        fileBytes,
+        filename: fileName,
+        contentType: MediaType("image", "jpeg"),
+      ));
+
+      final response = await request.send();
+
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        final data = jsonDecode(responseBody);
+
+        if (data['ok'] == 1) {
+          setState(() {
+            _groupImageUrl = data['imageUrl']; // lưu URL ảnh nhóm
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Upload ảnh nhóm thất bại: ${data['message']}")),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Upload ảnh nhóm thất bại (status): ${response.statusCode}")),
+        );
+      }
+    }
+  }
+
+
 
   Future<void> createGroup() async {
     final name = _groupNameController.text.trim();
@@ -126,7 +172,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     final body = jsonEncode({
       "name": name,
       "description": description,
-      "image": image,
+      "image": _groupImageUrl ?? "",
       "ownerId": ownerId,
       "initialMembers": selectedIds,
     });
@@ -192,11 +238,30 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                       bottom: MediaQuery.of(context).viewInsets.bottom,
                     ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        // crossAxisAlignment: CrossAxisAlignment.stretch,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const CircleAvatar(
-                            radius: 40,
-                            child: Icon(Icons.group, size: 40),
+                          Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 50,
+                                backgroundImage: _groupImageUrl != null
+                                    ? NetworkImage(_groupImageUrl!)
+                                    : AssetImage('assets/images/default_group.png') as ImageProvider,
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: InkWell(
+                                  onTap: _pickAndUploadGroupImage,
+                                  child: CircleAvatar(
+                                    radius: 15,
+                                    backgroundColor: Colors.white,
+                                    child: Icon(Icons.edit, size: 18, color: Colors.blue),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16),
                           TextField(
