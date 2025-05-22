@@ -51,6 +51,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
   int _currentSearchIndex = 0;
   final _listViewController = ScrollController();
 
+  //Reply
+  Map<String, dynamic>? _replyingMessage;
+
 
   @override
   void initState() {
@@ -126,8 +129,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
   void _sendMessage() {
     final content = _messageController.text.trim();
     if (content.isNotEmpty) {
-      _webSocketService?.sendMessage(content, widget.user.hoTen, widget.user.image);
+      _webSocketService?.sendMessage(
+        content,
+        widget.user.hoTen,
+        widget.user.image,
+        replyToMessage: _replyingMessage,
+      );
       _messageController.clear();
+      setState(() {
+        _replyingMessage = null;
+      });
     }
   }
 
@@ -210,7 +221,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     }
   }
 
+  ///Action giữ tin nhắn
   void _handleMessageAction(String action, Map<String, dynamic> message) async {
+    if (action == "reply" || action == "forward") {
+      message['deleteReason'] = null;
+      if (action == 'reply') {
+        _startReplyToMessage(message);
+      }
+      // Không gọi API deleteMessage cho reply/forward
+      return;
+    }
+
+    // Nếu action là xóa, thu hồi (undo), mới gọi API
     final messageId = message['messageId'];
     if (messageId == null) return;
 
@@ -229,6 +251,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     }
   }
 
+
+  ///Trỏ đúng vị trí tìm kiếm tin nhắn
   void _scrollToSearchResult() {
     final targetMsgId = _searchResults[_currentSearchIndex]['messageId'];
     final indexInAll = _messages.indexWhere((m) => m['messageId'] == targetMsgId);
@@ -241,6 +265,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
       );
     }
   }
+
+  ///Reply tin nhắn
+  void _startReplyToMessage(Map<String, dynamic> message) {
+    setState(() {
+      _replyingMessage = message;
+    });
+    print("Replying to: ${_replyingMessage?['messageId']?.runtimeType} | value: ${_replyingMessage?['messageId']}");
+    print("Replying to: ${_replyingMessage?['messageId']}, deleteReason: ${_replyingMessage?['deleteReason']}");
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -315,6 +349,35 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
         onTap: _dismissEmojiPicker,
         child: Column(
           children: [
+            if (_replyingMessage != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        "Replying to: ${_replyingMessage!['content'] ?? 'Tin nhắn'}",
+                        style: TextStyle(fontStyle: FontStyle.italic),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close, size: 20),
+                      onPressed: () {
+                        setState(() {
+                          _replyingMessage = null;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
             if (_isSearching && _searchResults.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4),

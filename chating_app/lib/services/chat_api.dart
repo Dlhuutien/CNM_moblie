@@ -303,6 +303,71 @@ class ChatApi {
     }
   }
 
+  /// Trả lời tin nhắn
+  static Future<Map<String, dynamic>> replyToMessage({required String replyToMessageId, required String content, required String senderId,}) async {
+    final url = Uri.parse("$baseUrl/chat/replyToMsg");
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "replyTo": replyToMessageId,
+        "content": content,
+        "sender": senderId,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+      return data['message'];
+    } else {
+      throw Exception("Lỗi khi trả lời tin nhắn: ${response.body}");
+    }
+  }
+
+
+  ///Chuyển tiếp tin nhắn
+  static Future<Map<String, dynamic>> forwardMessage({
+    required String messageId,
+    required String targetChatId,
+  }) async {
+    final url = Uri.parse("$baseUrl/chat/forwardMsg");
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "messageId": messageId,
+        "targetChatId": targetChatId,
+      }),
+    );
+
+    print("Đã gửi yêu cầu chuyển tiếp messageId: $messageId đến chatId: $targetChatId");
+
+    if (response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+      return data['message'];
+    } else {
+      throw Exception("Lỗi khi chuyển tiếp tin nhắn: ${response.body}");
+    }
+  }
+
+
+  /// Xóa bạn bè
+  static Future<bool> unfriendContact(String userId, String contactId) async {
+    final url = Uri.parse("$baseUrl/contact/unfriend?userId=$userId&contactId=$contactId");
+    final response = await http.post(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['success'] == true;
+    } else if (response.statusCode == 404) {
+      final data = jsonDecode(response.body);
+      print("Lỗi: ${data['message']}");
+      return false;
+    } else {
+      print("Lỗi không xác định khi xóa liên hệ: ${response.body}");
+      return false;
+    }
+  }
 }
 
 

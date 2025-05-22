@@ -40,10 +40,8 @@ class WebSocketService {
 
         final type = decoded['type'];
         print("Type nhận được từ server: $type");
-        print("Đã nhận được receiveChat: ${jsonEncode(decoded)}");
-        if (decoded["type"] == "receiveChat") {
-          print("receiveChat full: ${jsonEncode(decoded)}");
 
+        if (type == "receiveChat") {
           final msg = decoded["message"];
           final incomingChatId = decoded["chatId"] ?? msg["chatId"];
 
@@ -60,10 +58,23 @@ class WebSocketService {
               "senderName": msg["senderName"],
               "senderImage": msg["senderImage"],
               "deleteReason": msg["deleteReason"],
+              "replyTo": msg["replyTo"] != null && msg["replyTo"] is Map
+                  ? {
+                "messageId": msg["replyTo"]["messageId"],
+                "content": msg["replyTo"]["content"],
+                "userId": msg["replyTo"]["userId"],
+                "senderName": msg["replyTo"]["senderName"],
+                "senderImage": msg["replyTo"]["senderImage"] ?? "",
+              }
+                  : msg["replyTo"] is String
+                  ? {
+                "messageId": msg["replyTo"],
+              }
+                  : null,
+
             });
           }
-        }
-        else if (decoded["type"] == "changeMessageType") {
+        } else if (type == "changeMessageType") {
           final msgId = decoded["msgId"];
           final deleteType = decoded["deleteType"];
           onMessage({
@@ -71,8 +82,10 @@ class WebSocketService {
             "msgId": msgId,
             "deleteType": deleteType,
           });
-        } else if (decoded["type"] == "ok" && decoded["originalType"] == "sendChat") {
+        } else if (type == "ok" && decoded["originalType"] == "sendChat") {
+          print("Tin nhắn gửi thành công: ${jsonEncode(decoded)}");
           final msgPayload = decoded["messagePayload"];
+          print("Response messagePayload: $msgPayload");
           onMessage({
             "messageId": msgPayload["messageId"],
             "userId": userId,
@@ -82,39 +95,57 @@ class WebSocketService {
             "deleteReason": null,
             "senderName": msgPayload["senderName"] ?? "",
             "senderImage": msgPayload["senderImage"] ?? "",
+            "replyTo": msgPayload["replyTo"] != null ? msgPayload["replyTo"] : null,
           });
         }
       });
-
     } catch (e) {
       print("WebSocket connection error: $e");
     }
   }
 
-  void sendMessage(String content, String senderName, String senderImage) {
+  /// Gửi message text, hỗ trợ reply
+  void sendMessage(
+      String content,
+      String senderName,
+      String senderImage, {
+        Map<String, dynamic>? replyToMessage,
+      }) {
     if (_socket == null) {
       print("Socket chưa được khởi tạo.");
       return;
     }
 
+    final Map<String, dynamic> messagePayload = {
+      "type": "text",
+      "content": content,
+      "senderName": senderName,
+      "senderImage": senderImage,
+    };
+
+    // Gửi replyTo đúng theo backend (chỉ cần messageId)
+    if (replyToMessage != null && replyToMessage["messageId"] != null) {
+      messagePayload["replyTo"] = replyToMessage["messageId"];
+    }
+
     final message = {
       "type": "sendChat",
       "chatId": chatId,
-      "messagePayload": {
-        "type": "text",
-        "content": content,
-        "senderName": senderName,
-        "senderImage": senderImage,
-      },
+      "messagePayload": messagePayload,
     };
 
     try {
-      _socket!.add(jsonEncode(message));
+      final jsonString = jsonEncode(message);
+      print("Gửi message: $jsonString");
+      _socket!.add(jsonString);
     } catch (e) {
       print("Lỗi khi gửi message: $e");
     }
   }
 
+
+
+  /// Gửi message có đính kèm attachment
   void sendMessageWithAttachment({
     required String content,
     required String attachmentUrl,
@@ -141,8 +172,7 @@ class WebSocketService {
     }
   }
 
-
-
+  /// Đóng kết nối socket
   void close() {
     _socket?.close();
   }
