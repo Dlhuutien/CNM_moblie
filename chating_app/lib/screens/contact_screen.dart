@@ -99,6 +99,42 @@ class _FriendListState extends State<FriendList> {
     }
   }
 
+  ///Xóa bạn bè
+  Future<void> _unfriend(String contactId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xác nhận'),
+        content: const Text('Bạn có chắc chắn muốn xóa bạn này không?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Xóa', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final success = await ChatApi.unfriendContact(widget.user.userID,contactId);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Xóa bạn thành công')),
+        );
+        await _fetchFriends(); // load lại danh sách bạn bè sau khi xóa
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Xóa bạn thất bại')),
+        );
+      }
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) return const Center(child: CircularProgressIndicator());
@@ -126,11 +162,15 @@ class _FriendListState extends State<FriendList> {
             ),
             ...friends.map((friend) {
               return ListTile(
-                leading: CircleAvatar(
+                leading: (friend['imageUrl'] != null && friend['imageUrl'].toString().isNotEmpty)
+                    ? CircleAvatar(
                   backgroundImage: NetworkImage(friend['imageUrl']),
+                )
+                    : const CircleAvatar(
+                  child: Icon(Icons.person),
                 ),
-                title: Text(friend['name']),
-                subtitle: Text(friend['phone']),
+                title: Text(friend['name'] ?? 'Không tên'),
+                subtitle: Text(friend['phone'] ?? 'Không có số điện thoại'),
                 trailing: SizedBox(
                   width: 150,
                   child: Row(
@@ -163,7 +203,9 @@ class _FriendListState extends State<FriendList> {
                       IconButton(icon: const Icon(Icons.call),
                           onPressed: () {}),
                       IconButton(icon: const Icon(
-                          Icons.delete, color: Colors.red), onPressed: () {}),
+                          Icons.delete, color: Colors.red), onPressed: () {
+                        _unfriend(friend['contactId'].toString());
+                      },),
                     ],
                   ),
                 ),
@@ -225,7 +267,10 @@ class _NotificationListState extends State<NotificationList> {
         final request = requests[index];
         return ListTile(
           leading: CircleAvatar(
-            backgroundImage: NetworkImage(request['senderImage']),
+            child: request['senderImage'] != null && request['senderImage'].toString().isNotEmpty ? null : const Icon(Icons.person),
+            backgroundImage: (request['senderImage'] != null && request['senderImage'].toString().isNotEmpty)
+                ? NetworkImage(request['senderImage'])
+                : null,
           ),
           title: Text(request['senderName']),
           subtitle: Text("SĐT: ${request['senderPhone']}"),

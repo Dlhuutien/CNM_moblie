@@ -20,6 +20,7 @@ class MessageCard extends StatefulWidget {
   final bool highlight;
   final bool isCurrentSearch;
 
+  final VoidCallback? onLongPress;
 
   const MessageCard({
     Key? key,
@@ -30,6 +31,7 @@ class MessageCard extends StatefulWidget {
     this.isGroup = false,
     this.highlight = false,
     this.isCurrentSearch = false,
+    this.onLongPress,
   }) : super(key: key);
 
   @override
@@ -52,7 +54,6 @@ class _MessageCardState extends State<MessageCard> {
     if (widget.message['deleteReason'] == 'remove' && widget.isUserMessage) {
       return const SizedBox.shrink();
     }
-
     return GestureDetector(
       onLongPress: () => _showMessageOptions(context),
       child: Listener(
@@ -116,6 +117,9 @@ class _MessageCardState extends State<MessageCard> {
                     ),
                   )
                 else ...[
+                  if (widget.message['replyTo'] != null) ...[
+                    _buildReplyPreview(widget.message['replyTo']),
+                  ],
                   if (widget.message['attachmentUrl'] != null &&
                       widget.message['attachmentUrl'].toString().isNotEmpty)
                     _buildAttachmentWidget(widget.message['attachmentUrl']),
@@ -330,3 +334,53 @@ Future<void> downloadFile(BuildContext context, String url, String fileName) asy
     );
   }
 }
+
+
+bool _isImageFile(String url) {
+  final ext = url.toLowerCase().split('.').last;
+  return ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext);
+}
+Widget _buildReplyPreview(Map<String, dynamic> repliedMsg) {
+  final bool isImage = repliedMsg['attachmentUrl'] != null &&
+      _isImageFile(repliedMsg['attachmentUrl']);
+
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.grey.shade100,
+      border: Border(
+        left: BorderSide(color: Colors.blue.shade300, width: 4),
+      ),
+    ),
+    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+    margin: const EdgeInsets.only(bottom: 4),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          repliedMsg['senderName'] ?? 'Unknown',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        ),
+        const SizedBox(height: 4),
+        if (isImage)
+          Row(
+            children: [
+              const Icon(Icons.image, size: 16, color: Colors.grey),
+              const SizedBox(width: 4),
+              Text(
+                '[Hình ảnh]',
+                style: const TextStyle(color: Colors.black54, fontStyle: FontStyle.italic),
+              ),
+            ],
+          )
+        else
+          Text(
+            repliedMsg['content'] ?? 'Tin nhắn đã xóa',
+            style: const TextStyle(color: Colors.black87),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+      ],
+    ),
+  );
+}
+

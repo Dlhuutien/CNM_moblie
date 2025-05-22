@@ -7,6 +7,10 @@ import 'package:chating_app/services/chat_api.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:chating_app/services/env_config.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:http_parser/http_parser.dart';
 
 class ChatGroupProfileScreen extends StatefulWidget {
   final String chatId;
@@ -96,6 +100,94 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
       print("Lỗi khi load dữ liệu nhóm: $e");
     }
   }
+
+  Future<void> _pickAndUploadGroupImage(String chatId) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      final fileBytes = await pickedFile.readAsBytes();
+      final fileName = pickedFile.name;
+
+      // Bước 1: Upload ảnh lên server/S3 để lấy URL
+      final imageUrl = await _uploadImageAndGetUrl(fileBytes, fileName);
+      if (imageUrl == null) {
+        print("Không lấy được URL ảnh sau khi upload");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Lỗi khi tải ảnh lên server")),
+        );
+        return;
+      }
+
+      // Bước 2: Gửi {userId, image} tới endpoint cập nhật ảnh nhóm
+      final updateUrl = Uri.parse("${EnvConfig.baseUrl}/group/$chatId/updateimage");
+      final userId = int.tryParse(widget.userId) ?? 0;
+
+      final body = jsonEncode({
+        "userId": userId,
+        "image": imageUrl,
+      });
+
+      try {
+        final response = await http.post(
+          updateUrl,
+          headers: {"Content-Type": "application/json"},
+          body: body,
+        );
+
+        final responseData = jsonDecode(response.body);
+
+        if (response.statusCode == 200 && responseData["success"] == true) {
+          print("Cập nhật ảnh nhóm thành công");
+          setState(() {
+            groupImageUrl = imageUrl;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Cập nhật ảnh nhóm thành công")),
+          );
+        } else {
+          print("Lỗi cập nhật ảnh: ${response.body}");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Lỗi: ${responseData['message']}")),
+          );
+        }
+      } catch (e) {
+        print("Exception khi gửi request: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Lỗi xảy ra: $e")),
+        );
+      }
+    }
+  }
+  Future<String?> _uploadImageAndGetUrl(Uint8List fileBytes, String fileName) async {
+    final uploadUrl = Uri.parse("${EnvConfig.baseUrl}/user/upload");
+
+    var request = http.MultipartRequest("POST", uploadUrl);
+    request.files.add(http.MultipartFile.fromBytes(
+      "file",
+      fileBytes,
+      filename: fileName,
+      contentType: MediaType("image", "jpeg"),
+    ));
+
+    try {
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      final data = jsonDecode(responseBody);
+
+      if (response.statusCode == 200 && data["imageUrl"] != null) {
+        return data["imageUrl"];
+      } else {
+        print("Upload thất bại: $responseBody");
+        return null;
+      }
+    } catch (e) {
+      print("Exception khi upload ảnh: $e");
+      return null;
+    }
+  }
+
+
 
 
   ///Hàm giải tán nhóm
@@ -286,10 +378,34 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            CircleAvatar(
-              radius: 40,
-              backgroundImage: NetworkImage(groupImageUrl),
+            GestureDetector(
+              onTap: isAdmin ? () => _pickAndUploadGroupImage(widget.chatId) : null,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 40,
+                    child: groupImageUrl != null && groupImageUrl!.isNotEmpty
+                        ? null
+                        : Icon(Icons.group),
+                    backgroundImage: groupImageUrl != null && groupImageUrl!.isNotEmpty
+                        ? NetworkImage(groupImageUrl!)
+                        : null,
+                  ),
+                  if (isAdmin)
+                    const Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: CircleAvatar(
+                        radius: 12,
+                        backgroundColor: Colors.white,
+                        child: Icon(Icons.edit, size: 16, color: Colors.black),
+                      ),
+                    ),
+                ],
+              ),
             ),
+
             const SizedBox(height: 8),
             Text(groupName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             Text(groupDescription, style: const TextStyle(color: Colors.grey)),
