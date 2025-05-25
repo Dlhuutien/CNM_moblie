@@ -68,34 +68,47 @@ class _FriendListState extends State<FriendList> {
   }
 
   /// Gọi API để lấy danh sách bạn bè, sắp xếp theo tên và nhóm theo chữ cái đầu
+  // Future<void> _fetchFriends() async {
+  //   setState(() => isLoading = true);
+  //   final response = await http.get(Uri.parse(
+  //       "${EnvConfig.baseUrl}/contact/list?userId=${widget.user.userID}"));
+  //   if (response.statusCode == 200) {
+  //     final data = json.decode(response.body);
+  //     final List<Map<String, dynamic>> sorted = List<Map<String, dynamic>>.from(
+  //         data['data']);
+  //
+  //     sorted.sort((a, b) {
+  //       final nameA = (a['name'] ?? '').toLowerCase();
+  //       final nameB = (b['name'] ?? '').toLowerCase();
+  //       return nameA.compareTo(nameB);
+  //     });
+  //
+  //     final Map<String, List<Map<String, dynamic>>> grouped = {};
+  //     for (var friend in sorted) {
+  //       final name = friend['name'] ?? '';
+  //       final letter = name.isNotEmpty ? name[0].toUpperCase() : '#';
+  //       grouped.putIfAbsent(letter, () => []).add(friend);
+  //     }
+  //
+  //     setState(() {
+  //       groupedFriends = grouped;
+  //       isLoading = false;
+  //     });
+  //   } else {
+  //     setState(() => isLoading = false);
+  //   }
+  // }
   Future<void> _fetchFriends() async {
     setState(() => isLoading = true);
-    final response = await http.get(Uri.parse(
-        "${EnvConfig.baseUrl}/contact/list?userId=${widget.user.userID}"));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final List<Map<String, dynamic>> sorted = List<Map<String, dynamic>>.from(
-          data['data']);
-
-      sorted.sort((a, b) {
-        final nameA = (a['name'] ?? '').toLowerCase();
-        final nameB = (b['name'] ?? '').toLowerCase();
-        return nameA.compareTo(nameB);
-      });
-
-      final Map<String, List<Map<String, dynamic>>> grouped = {};
-      for (var friend in sorted) {
-        final name = friend['name'] ?? '';
-        final letter = name.isNotEmpty ? name[0].toUpperCase() : '#';
-        grouped.putIfAbsent(letter, () => []).add(friend);
-      }
-
+    try {
+      final grouped = await ChatApi.getGroupedFriends(widget.user.userID);
       setState(() {
         groupedFriends = grouped;
-        isLoading = false;
       });
-    } else {
-      setState(() => isLoading = false);
+    } catch (e) {
+      print("Lỗi khi lấy danh sách bạn bè: $e");
+    } finally {
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
@@ -322,43 +335,58 @@ class _GroupListState extends State<GroupList> {
   /// Gọi API lấy danh sách các nhóm của người dùng, lọc các nhóm chưa bị giải tán,
   /// sắp xếp theo tên và nhóm theo chữ cái đầu.
   /// Tự động cập nhật khi có thay đổi để hiển thị thời gian thực.
+  // Future<void> _loadGroups() async {
+  //   try {
+  //     final chats = await ChatApi.fetchChatsWithLatestMessage(widget.user.userID);
+  //     final filtered = chats
+  //         .where((chat) =>
+  //     chat["ChatID"].toString().startsWith("group-") &&
+  //         chat["Status"] != "disbanded")
+  //         .toList();
+  //
+  //     filtered.sort((a, b) {
+  //       final nameA = (a["chatName"] ?? "").toString().toLowerCase();
+  //       final nameB = (b["chatName"] ?? "").toString().toLowerCase();
+  //       return nameA.compareTo(nameB);
+  //     });
+  //
+  //     final grouped = <String, List<Map<String, dynamic>>>{};
+  //     for (var group in filtered) {
+  //       final name = group["chatName"] ?? "Unnamed Group";
+  //       final firstLetter = name.isNotEmpty ? name[0].toUpperCase() : "#";
+  //       grouped.putIfAbsent(firstLetter, () => []).add(group);
+  //     }
+  //
+  //     //️ Chỉ update nếu có thay đổi
+  //     if (!mapEquals(grouped, groupedGroups)) {
+  //       setState(() {
+  //         groupedGroups = grouped;
+  //         isLoading = false;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     print("Lỗi khi load nhóm: $e");
+  //   } finally {
+  //     if (mounted) {
+  //       setState(() => isLoading = false);
+  //     }
+  //   }
+  // }
   Future<void> _loadGroups() async {
     try {
-      final chats = await ChatApi.fetchChatsWithLatestMessage(widget.user.userID);
-      final filtered = chats
-          .where((chat) =>
-      chat["ChatID"].toString().startsWith("group-") &&
-          chat["Status"] != "disbanded")
-          .toList();
-
-      filtered.sort((a, b) {
-        final nameA = (a["chatName"] ?? "").toString().toLowerCase();
-        final nameB = (b["chatName"] ?? "").toString().toLowerCase();
-        return nameA.compareTo(nameB);
-      });
-
-      final grouped = <String, List<Map<String, dynamic>>>{};
-      for (var group in filtered) {
-        final name = group["chatName"] ?? "Unnamed Group";
-        final firstLetter = name.isNotEmpty ? name[0].toUpperCase() : "#";
-        grouped.putIfAbsent(firstLetter, () => []).add(group);
-      }
-
-      //️ Chỉ update nếu có thay đổi
+      final grouped = await ChatApi.getGroupedGroups(widget.user.userID);
       if (!mapEquals(grouped, groupedGroups)) {
         setState(() {
           groupedGroups = grouped;
-          isLoading = false;
         });
       }
     } catch (e) {
       print("Lỗi khi load nhóm: $e");
     } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
+      if (mounted) setState(() => isLoading = false);
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

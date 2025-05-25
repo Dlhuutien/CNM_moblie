@@ -1,16 +1,18 @@
 import 'dart:io';
 import 'package:chating_app/data/user.dart';
 import 'package:chating_app/screens/chat_group_profile_screen.dart';
+import 'package:chating_app/services/websocket_service.dart';
+import 'package:chating_app/widgets/message_card.dart';
+import 'package:chating_app/services/chat_api.dart';
+import 'package:chating_app/widgets/forward_select_screen.dart';
+import 'chat_profile_screen.dart';
+
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
-import 'chat_profile_screen.dart';
-import 'package:chating_app/services/websocket_service.dart';
-import 'package:chating_app/widgets/message_card.dart';
-import 'package:chating_app/services/chat_api.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ChatDetailScreen extends StatefulWidget {
@@ -221,14 +223,81 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     }
   }
 
+  void _forwardMessageToSelected(
+      Map<String, dynamic> message,
+      List<String> targetChatIds,
+      List friends,
+      List groups,
+      ) {
+    for (String chatId in targetChatIds) {
+      try {
+        final ws = WebSocketService(
+          userId: widget.userId,
+          chatId: chatId,
+          onMessage: (msg) {
+            print("[WS] Tin nhắn nhận về: $msg");
+          },
+        );
+
+        ws.connect().then((_) {
+          ws.sendMessage(
+            message['content'],
+            message['senderName'],
+            message['senderImage'],
+            isForward: true,
+            // Nếu cần reply thì truyền thêm replyToMessage: message['replyTo']
+          );
+        });
+
+        print("[FORWARD WS] Đã gửi tin nhắn forward đến chatId: $chatId");
+      } catch (e) {
+        print("[FORWARD WS] Lỗi khi gửi forward tới $chatId: $e");
+      }
+    }
+  }
+
+
+
+  List<Map<String, dynamic>> _flattenGroupedData(Map<String, List<Map<String, dynamic>>> groupedData) {
+    return groupedData.values.expand((list) => list).toList();
+  }
+
+
   ///Action giữ tin nhắn
   void _handleMessageAction(String action, Map<String, dynamic> message) async {
-    if (action == "reply" || action == "forward") {
+    if (action == "reply") {
       message['deleteReason'] = null;
       if (action == 'reply') {
         _startReplyToMessage(message);
       }
       // Không gọi API deleteMessage cho reply/forward
+      return;
+    }
+
+    print("Action: $action, message: $message");
+    if (action == "forward") {
+      final friendsGrouped = await ChatApi.getGroupedFriends(widget.userId);
+      final groupsGrouped = await ChatApi.getGroupedGroups(widget.userId);
+
+      final friendsList = _flattenGroupedData(friendsGrouped);
+      final groupsList = _flattenGroupedData(groupsGrouped);
+
+      final selectedIds = await Navigator.push<List<String>>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ForwardSelectScreen(
+            message: message,
+            friends: friendsList,
+            groups: groupsList,
+            currentUserId: widget.userId,
+          ),
+        ),
+      );
+
+      if (!mounted) return;
+      if (selectedIds != null) {
+        _forwardMessageToSelected(message, selectedIds, friendsList, groupsList);
+      }
       return;
     }
 
