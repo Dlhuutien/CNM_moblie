@@ -139,7 +139,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   }
 
 
-
   Future<void> createGroup() async {
     final name = _groupNameController.text.trim();
     final description = "";

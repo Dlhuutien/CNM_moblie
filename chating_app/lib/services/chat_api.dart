@@ -324,33 +324,6 @@ class ChatApi {
     }
   }
 
-
-  ///Chuyển tiếp tin nhắn
-  static Future<Map<String, dynamic>> forwardMessage({
-    required String messageId,
-    required String targetChatId,
-  }) async {
-    final url = Uri.parse("$baseUrl/chat/forwardMsg");
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        "messageId": messageId,
-        "targetChatId": targetChatId,
-      }),
-    );
-
-    print("Đã gửi yêu cầu chuyển tiếp messageId: $messageId đến chatId: $targetChatId");
-
-    if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-      return data['message'];
-    } else {
-      throw Exception("Lỗi khi chuyển tiếp tin nhắn: ${response.body}");
-    }
-  }
-
-
   /// Xóa bạn bè
   static Future<bool> unfriendContact(String userId, String contactId) async {
     final url = Uri.parse("$baseUrl/contact/unfriend?userId=$userId&contactId=$contactId");
@@ -368,6 +341,61 @@ class ChatApi {
       return false;
     }
   }
+
+  /// Lấy và nhóm các nhóm chat theo chữ cái đầu
+  static Future<Map<String, List<Map<String, dynamic>>>> getGroupedGroups(String userId) async {
+    final chats = await fetchChatsWithLatestMessage(userId);
+
+    final filtered = chats
+        .where((chat) =>
+    chat["ChatID"].toString().startsWith("group-") &&
+        chat["Status"] != "disbanded")
+        .toList();
+
+    filtered.sort((a, b) {
+      final nameA = (a["chatName"] ?? "").toString().toLowerCase();
+      final nameB = (b["chatName"] ?? "").toString().toLowerCase();
+      return nameA.compareTo(nameB);
+    });
+
+    final grouped = <String, List<Map<String, dynamic>>>{};
+    for (var group in filtered) {
+      final name = group["chatName"] ?? "Unnamed Group";
+      final firstLetter = name.isNotEmpty ? name[0].toUpperCase() : "#";
+      grouped.putIfAbsent(firstLetter, () => []).add(group);
+    }
+
+    return grouped;
+  }
+
+  /// Lấy và nhóm danh sách bạn bè theo chữ cái đầu
+  static Future<Map<String, List<Map<String, dynamic>>>> getGroupedFriends(String userId) async {
+    final response = await http.get(Uri.parse("$baseUrl/contact/list?userId=$userId"));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final List<Map<String, dynamic>> sorted =
+      List<Map<String, dynamic>>.from(data['data']);
+
+      sorted.sort((a, b) {
+        final nameA = (a['name'] ?? '').toLowerCase();
+        final nameB = (b['name'] ?? '').toLowerCase();
+        return nameA.compareTo(nameB);
+      });
+
+      final Map<String, List<Map<String, dynamic>>> grouped = {};
+      for (var friend in sorted) {
+        final name = friend['name'] ?? '';
+        final letter = name.isNotEmpty ? name[0].toUpperCase() : '#';
+        grouped.putIfAbsent(letter, () => []).add(friend);
+      }
+
+      return grouped;
+    } else {
+      throw Exception("Lỗi khi lấy danh sách bạn bè: ${response.body}");
+    }
+  }
+
 }
 
 

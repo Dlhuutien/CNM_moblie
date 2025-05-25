@@ -110,6 +110,7 @@ class WebSocketService {
       String senderName,
       String senderImage, {
         Map<String, dynamic>? replyToMessage,
+        bool isForward = false,
       }) {
     if (_socket == null) {
       print("Socket chưa được khởi tạo.");
@@ -128,6 +129,10 @@ class WebSocketService {
       messagePayload["replyTo"] = replyToMessage["messageId"];
     }
 
+    if (isForward) {
+      messagePayload["isForward"] = true;
+    }
+
     final message = {
       "type": "sendChat",
       "chatId": chatId,
@@ -143,26 +148,31 @@ class WebSocketService {
     }
   }
 
-
-
-  /// Gửi message có đính kèm attachment
+  /// Gửi message có đính kèm attachment, hỗ trợ forward
   void sendMessageWithAttachment({
     required String content,
     required String attachmentUrl,
+    bool isForward = false,  // thêm param isForward
   }) {
     if (_socket == null) {
       print("Socket chưa được khởi tạo.");
       return;
     }
 
+    final messagePayload = {
+      "type": "attachment",
+      "content": content,
+      "attachmentUrl": attachmentUrl,
+    };
+
+    if (isForward) {
+      messagePayload["isForward"] = "true";  // thêm field isForward khi cần
+    }
+
     final message = {
       "type": "sendChat",
       "chatId": chatId,
-      "messagePayload": {
-        "type": "attachment",
-        "content": content,
-        "attachmentUrl": attachmentUrl,
-      },
+      "messagePayload": messagePayload,
     };
 
     try {
