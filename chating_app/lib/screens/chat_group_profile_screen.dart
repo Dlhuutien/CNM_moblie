@@ -506,13 +506,13 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
               String roleText;
               switch (role) {
                 case 'owner':
-                  roleText = 'Trưởng nhóm';
+                  roleText = 'owner';
                   break;
                 case 'admin':
-                  roleText = 'Phó nhóm';
+                  roleText = 'admin';
                   break;
                 default:
-                  roleText = 'Thành viên';
+                  roleText = 'member';
               }
 
               return ListTile(

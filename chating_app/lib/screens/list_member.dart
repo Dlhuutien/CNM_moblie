@@ -346,13 +346,13 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
         String roleText;
         switch (role) {
           case 'owner':
-            roleText = 'Owner';
+            roleText = 'owner';
             break;
           case 'admin':
-            roleText = 'Admin';
+            roleText = 'admin';
             break;
           default:
-            roleText = 'Members';
+            roleText = 'members';
         }
 
         return ListTile(
