@@ -50,7 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Cập nhật thất bại: ${response.body}")),
+        SnackBar(content: Text("Update fail: ${response.body}")),
       );
     }
   }
@@ -84,12 +84,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           await updateUserField('image', imageUrl);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Upload ảnh thất bại: ${data['message']}")),
+            SnackBar(content: Text("Upload picture fail: ${data['message']}")),
           );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Upload ảnh thất bại (status): ${response.statusCode}")),
+          SnackBar(content: Text("Upload picture fail (status): ${response.statusCode}")),
         );
       }
     }
@@ -129,14 +129,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       String? newValue = await showDialog<String>(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text("Chỉnh sửa $label"),
+          title: Text("Edit $label"),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(hintText: "Nhập $label mới"),
+            decoration: InputDecoration(hintText: "Input $label new"),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: Text("Huỷ")),
-            TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text("Lưu")),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text("Cancel")),
+            TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text("Save")),
           ],
         ),
       );
@@ -144,14 +144,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (newValue != null && newValue.trim().isNotEmpty && newValue != currentValue) {
         if (fieldName == 'email' && !RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(newValue)) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Email không hợp lệ")),
+            const SnackBar(content: Text("Email invalid")),
           );
           return;
         }
 
         if (fieldName == 'phone' && !RegExp(r'^\d10$').hasMatch(newValue)) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Số điện thoại không hợp lệ")),
+            const SnackBar(content: Text("Invalid phone number")),
           );
           return;
         }
@@ -160,7 +160,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             !RegExp(r"^([A-ZÀ-Ỵ][a-zà-ỵ]+)( [A-ZÀ-Ỵ][a-zà-ỵ]+)*$", unicode: true)
                 .hasMatch(newValue.trim())) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Tên phải viết hoa chữ cái đầu và không chứa ký tự đặc biệt")),
+            const SnackBar(content: Text("Name must be capitalized and must not contain special characters")),
           );
           return;
         }

@@ -139,15 +139,15 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
         final responseData = jsonDecode(response.body);
 
         if (response.statusCode == 200 && responseData["success"] == true) {
-          print("Cập nhật ảnh nhóm thành công");
+          print("Group photo update successful");
           setState(() {
             groupImageUrl = imageUrl;
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Cập nhật ảnh nhóm thành công")),
+            const SnackBar(content: Text("Group photo update successful")),
           );
         } else {
-          print("Lỗi cập nhật ảnh: ${response.body}");
+          print("Image update error: ${response.body}");
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Lỗi: ${responseData['message']}")),
           );
@@ -179,11 +179,11 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
       if (response.statusCode == 200 && data["imageUrl"] != null) {
         return data["imageUrl"];
       } else {
-        print("Upload thất bại: $responseBody");
+        print("Upload fail: $responseBody");
         return null;
       }
     } catch (e) {
-      print("Exception khi upload ảnh: $e");
+      print("Exception when upload picture: $e");
       return null;
     }
   }
@@ -195,9 +195,9 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
       if (!granted.isGranted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text("Cần cấp quyền quản lý file để mở."),
+            content: const Text("File management permission required to open."),
             action: SnackBarAction(
-              label: "Cài đặt",
+              label: "Setting",
               onPressed: () => openAppSettings(),
             ),
           ),
@@ -216,14 +216,14 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
 
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Không thể mở file. Hãy đảm bảo bạn có ứng dụng phù hợp.")),
+        const SnackBar(content: Text("Cannot open file. Make sure you have the correct application.")),
       );
     }
   }
 
   ///Hàm giải tán nhóm
   void _disbandGroup() async {
-    print("Vai trò hiện tại: $currentRole");
+    print("Current role: $currentRole");
 
     final confirmed = await showDialog(
       context: context,
@@ -244,7 +244,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
         await Future.delayed(const Duration(milliseconds: 500)); // Delay nhẹ
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Giải tán nhóm thành công")),
+          const SnackBar(content: Text("Group Dissolution Successful")),
         );
 
         await Future.delayed(const Duration(seconds: 1)); // Cho user thấy thông báo
@@ -299,7 +299,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
 
       if (leftGroup && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Đã rời khỏi nhóm")),
+          const SnackBar(content: Text("Left the group")),
         );
         await Future.delayed(const Duration(seconds: 1));
         if (context.mounted) {
@@ -312,7 +312,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
       } else {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Chưa rời khỏi nhóm, thử lại sau")),
+            const SnackBar(content: Text("Not left group yet, try again later")),
           );
         }
       }
@@ -359,7 +359,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
           });
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Lỗi đổi tên nhóm: $e")),
+            SnackBar(content: Text("Group rename error: $e")),
           );
         }
       } else if (field == 'description') {
@@ -379,7 +379,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
           });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Lỗi cập nhật: ${response.body}")),
+            SnackBar(content: Text("Update fail: ${response.body}")),
           );
         }
       }
