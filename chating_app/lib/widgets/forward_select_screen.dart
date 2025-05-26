@@ -21,37 +21,37 @@ class ForwardSelectScreen extends StatefulWidget {
 class _ForwardSelectScreenState extends State<ForwardSelectScreen> {
   final Set<String> selectedIds = {};
 
-  void _toggleSelection(String id) {
-    setState(() {
-      if (selectedIds.contains(id)) {
-        selectedIds.remove(id);
-      } else {
-        selectedIds.add(id);
-      }
+  // void _confirmForward() {
+  //   if (!mounted) return;
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     Navigator.pop(context, selectedIds.toList());
+  //   });
+  // }
+  void _confirmForward() {
+    if (!mounted) return;
+    final editedMessage = _messageController.text.trim();
+    Navigator.pop(context, {
+      'receivers': selectedIds.toList(),
+      'message': editedMessage,
     });
   }
 
-  void _confirmForward() {
-    if (!mounted) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.pop(context, selectedIds.toList());
-    });
+
+  TextEditingController _messageController = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    _messageController.text = widget.message['content'] ?? '';
   }
+
 
   @override
   Widget build(BuildContext context) {
+    final hasAttachment = widget.message['attachmentUrl'] != null && widget.message['attachmentUrl'].toString().isNotEmpty;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Chọn bạn bè / nhóm"),
-        actions: [
-          TextButton(
-            onPressed: selectedIds.isEmpty ? null : _confirmForward,
-            child: Text(
-              "Gửi",
-              style: TextStyle(color: selectedIds.isEmpty ? Colors.grey[400] : Colors.white),
-            ),
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -115,8 +115,62 @@ class _ForwardSelectScreenState extends State<ForwardSelectScreen> {
               },
             ),
           ),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (hasAttachment)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: SizedBox(
+                      height: 80,
+                      child: Image.network(
+                        widget.message['attachmentUrl'],
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+                      ),
+                    ),
+                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _messageController,
+                        decoration: const InputDecoration(
+                          hintText: "Chỉnh sửa tin nhắn...",
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                        minLines: 1,
+                        maxLines: 4,
+                        // Cho chỉnh sửa text nếu là file
+                        // enabled: !hasAttachment,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.send),
+                      color: Colors.blue,
+                      onPressed: selectedIds.isEmpty
+                          ? null
+                          : () {
+                        final editedMessage = _messageController.text.trim();
+                        Navigator.pop(context, {
+                          'receivers': selectedIds.toList(),
+                          'message': hasAttachment
+                              ? widget.message
+                              : editedMessage,
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
-}
+  }

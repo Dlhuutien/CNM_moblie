@@ -31,7 +31,7 @@ class ChatApi {
 
   ///Lấy lịch sử trò chuyện
   static Future<List<Map<String, dynamic>>> fetchMessages(String chatId, String userId) async {
-    final url = Uri.parse("$baseUrl/chat/$chatId/history/50?userId=$userId");
+    final url = Uri.parse("$baseUrl/chat/$chatId/history/90?userId=$userId");
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
