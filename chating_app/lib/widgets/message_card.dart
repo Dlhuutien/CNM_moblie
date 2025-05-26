@@ -193,10 +193,11 @@ class _MessageCardState extends State<MessageCard> {
             style: const TextStyle(color: Colors.white),
             overflow: TextOverflow.ellipsis,
           ),
-          subtitle: const Text("Click to download", style: TextStyle(color: Colors.white70)),
-          trailing: const Icon(Icons.download, color: Colors.white),
+          // subtitle: const Text("Click to download", style: TextStyle(color: Colors.white70)),
+          trailing: const Icon(Icons.open_in_new, color: Colors.white),
           onTap: () {
-            downloadFile(context, url, fileName);
+            // downloadFile(context, url, fileName);
+            openFileUrl(context, url);
           },
         ),
       );
@@ -260,6 +261,16 @@ class _MessageCardState extends State<MessageCard> {
     );
   }
 
+  String extractRealUrl(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri != null && uri.host.contains('google.com') && uri.path == '/url') {
+      final realUrl = uri.queryParameters['url'];
+      return realUrl ?? url;
+    }
+    return url;
+  }
+
+  ///Hàm chỉnh là text:http thành url
   List<InlineSpan> _buildTextWithLinks(String text) {
     final urlRegex = RegExp(
         r'(https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*))');
@@ -274,23 +285,25 @@ class _MessageCardState extends State<MessageCard> {
         spans.add(TextSpan(text: text.substring(lastIndex, match.start)));
       }
       final url = match.group(0)!;
-      final recognizer = TapGestureRecognizer()
-        ..onTap = () async {
-          final uri = Uri.tryParse(url);
-          if (uri != null && await canLaunchUrl(uri)) {
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
-          }
-        };
-      _recognizers.add(recognizer);
+      final actualUrl = extractRealUrl(url);
+      final actualUri = Uri.tryParse(actualUrl);
+      if (actualUri != null) {
+        final recognizer = TapGestureRecognizer()
+          ..onTap = () async {
+            await safeLaunchUrl(actualUri);
+          };
+        _recognizers.add(recognizer);
 
-      spans.add(TextSpan(
-        text: url,
-        style: const TextStyle(color: Colors.lightBlue, decoration: TextDecoration.underline),
-        recognizer: recognizer,
-      ));
-      lastIndex = match.end;
+        spans.add(TextSpan(
+          // text: url,
+          text: actualUrl,
+          style: const TextStyle(
+              color: Colors.lightBlue, decoration: TextDecoration.underline),
+          recognizer: recognizer,
+        ));
+        lastIndex = match.end;
+      }
     }
-
     if (lastIndex < text.length) {
       spans.add(TextSpan(text: text.substring(lastIndex)));
     }
@@ -300,15 +313,28 @@ class _MessageCardState extends State<MessageCard> {
 }
 
 Future<void> downloadFile(BuildContext context, String url, String fileName) async {
-  try {
-    final status = await Permission.storage.request();
-    if (!status.isGranted) {
+  if (!await Permission.manageExternalStorage.isGranted) {
+    // Chưa có quyền, yêu cầu người dùng cấp quyền
+    final granted = await Permission.manageExternalStorage.request();
+    if (!granted.isGranted) {
+      // Nếu từ chối, hỏi mở cài đặt
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Cần quyền lưu trữ để tải file.")),
+        SnackBar(
+          content: const Text("Cần cấp quyền quản lý file để tải."),
+          action: SnackBarAction(
+            label: "Cài đặt",
+            onPressed: () {
+              openAppSettings();
+            },
+          ),
+        ),
       );
       return;
     }
+  }
 
+  // Nếu quyền thì cho phét tải file
+  try {
     final dir = await getExternalStorageDirectory();
     if (dir == null) throw Exception("Không tìm được thư mục lưu");
 
@@ -335,6 +361,53 @@ Future<void> downloadFile(BuildContext context, String url, String fileName) asy
   }
 }
 
+Future<void> openFileUrl(BuildContext context, String url) async {
+  if (!await Permission.manageExternalStorage.isGranted) {
+    final granted = await Permission.manageExternalStorage.request();
+    if (!granted.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text("Cần cấp quyền quản lý file để mở."),
+          action: SnackBarAction(
+            label: "Cài đặt",
+            onPressed: () => openAppSettings(),
+          ),
+        ),
+      );
+      return;
+    }
+  }
+
+  final uri = Uri.tryParse(url);
+  if (uri == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("URL không hợp lệ.")),
+    );
+    return;
+  }
+
+  if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Không thể mở file. Hãy đảm bảo bạn có ứng dụng phù hợp.")),
+    );
+  }
+}
+
+Future<void> safeLaunchUrl(Uri uri) async {
+  if (!await launchUrl(uri, mode: LaunchMode.platformDefault)) {
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      print("Không thể mở URL: $uri");
+    }
+  }
+}
+
+Future<bool> requestManageExternalStoragePermission() async {
+  if (await Permission.manageExternalStorage.isGranted) {
+    return true;
+  }
+  final status = await Permission.manageExternalStorage.request();
+  return status.isGranted;
+}
 
 bool _isImageFile(String url) {
   final ext = url.toLowerCase().split('.').last;
