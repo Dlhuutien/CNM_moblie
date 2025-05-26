@@ -11,6 +11,14 @@ class SettingsScreen extends StatelessWidget {
 
   const SettingsScreen({super.key, required this.user});
 
+  Future<void> _logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // Xóa hết thông tin đã lưu
+
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -75,30 +83,43 @@ class SettingsScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // Logout
             GestureDetector(
-              onTap: () async {
-                // Xóa dữ liệu đăng nhập (ví dụ token) khỏi SharedPreferences
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.remove('user_token'); // Giả sử bạn lưu token dưới khóa 'user_token'
-
-                // Điều hướng về màn hình đăng nhập
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LoginScreen(), // Điều hướng về màn hình đăng nhập
+              onTap: () => _logout(context),
+              child: const Row(
+                children: [
+                  Icon(Icons.logout, color: Colors.red),
+                  SizedBox(width: 10),
+                  Text(
+                    "Logout",
+                    style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                   ),
-                );
-              },
-              child: const Text(
-                "Logout",
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                ],
               ),
             ),
+            // Logout
+            // GestureDetector(
+            //   onTap: () async {
+            //     // Xóa dữ liệu đăng nhập (ví dụ token) khỏi SharedPreferences
+            //     final prefs = await SharedPreferences.getInstance();
+            //     await prefs.remove('user_token'); // Giả sử bạn lưu token dưới khóa 'user_token'
+            //
+            //     // Điều hướng về màn hình đăng nhập
+            //     Navigator.pushReplacement(
+            //       context,
+            //       MaterialPageRoute(
+            //         builder: (context) => const LoginScreen(), // Điều hướng về màn hình đăng nhập
+            //       ),
+            //     );
+            //   },
+            //   child: const Text(
+            //     "Logout",
+            //     style: TextStyle(
+            //       color: Colors.red,
+            //       fontSize: 16,
+            //       fontWeight: FontWeight.bold,
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),

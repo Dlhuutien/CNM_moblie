@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:chating_app/data/user.dart';
 import 'package:chating_app/screens/chat_group_profile_screen.dart';
 import 'package:chating_app/services/websocket_service.dart';
@@ -46,7 +45,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
 
   //Tìm kiếm
   bool _isSearching = false;
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _searchResults = [];
 
   //Số lượng search tin nhắn trùng
@@ -104,6 +103,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     super.dispose();
   }
 
+  @override
   void didChangeMetrics() {
     final bottomInset = WidgetsBinding.instance.window.viewInsets.bottom;
     if (bottomInset > 0 && _showEmojiPicker) {
@@ -130,19 +130,32 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
 
   void _sendMessage() {
     final content = _messageController.text.trim();
-    if (content.isNotEmpty) {
-      _webSocketService?.sendMessage(
-        content,
-        widget.user.hoTen,
-        widget.user.image,
-        replyToMessage: _replyingMessage,
-      );
+    final hasImage = _selectedImageUrl != null;
+
+    if (content.isNotEmpty || hasImage) {
+      if (hasImage) {
+        _webSocketService?.sendMessageWithAttachment(
+          content: content.isNotEmpty ? content : "Đã gửi một ảnh",
+          attachmentUrl: _selectedImageUrl!,
+          // replyToMessage: _replyingMessage,
+        );
+      } else {
+        _webSocketService?.sendMessage(
+          content,
+          widget.user.hoTen,
+          widget.user.image,
+          replyToMessage: _replyingMessage,
+        );
+      }
+
       _messageController.clear();
       setState(() {
         _replyingMessage = null;
+        _selectedImageUrl = null; // Xóa ảnh đã chọn sau khi gửi
       });
     }
   }
+
 
   void _toggleEmojiPicker() async {
     FocusScope.of(context).unfocus();
@@ -175,6 +188,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     print("Recording saved to: $filePath");
   }
 
+  String? _selectedImageUrl;
   Future<void> _pickFile() async {
     final selected = await showModalBottomSheet<String>(
       context: context,
@@ -201,10 +215,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
       if (pickedImage != null) {
         final url = await ChatApi.uploadImage(pickedImage);
         if (url != null) {
-          _webSocketService?.sendMessageWithAttachment(
-            content: "Đã gửi một ảnh",
-            attachmentUrl: url,
-          );
+          setState(() {
+            _selectedImageUrl = url;  // Lưu url ảnh để preview và gửi sau
+          });
         }
       }
     } else if (selected == 'file') {
@@ -240,13 +253,27 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
         );
 
         ws.connect().then((_) {
-          ws.sendMessage(
-            message['content'],
-            message['senderName'],
-            message['senderImage'],
-            isForward: true,
-            // Nếu cần reply thì truyền thêm replyToMessage: message['replyTo']
-          );
+          final String content = message['content'] ?? "";
+          final String senderName = message['senderName'] ?? "";
+          final String senderImage = message['senderImage'] ?? "";
+          final String? attachmentUrl = message['attachmentUrl'];
+
+          // Nếu là tin nhắn đính kèm file, ảnh, voice
+          if (attachmentUrl != null && attachmentUrl.isNotEmpty) {
+            ws.sendMessageWithAttachment(
+              content: content.isNotEmpty ? content : "Đã chuyển tiếp một tệp tin",
+              attachmentUrl: attachmentUrl,
+              isForward: true,
+            );
+          } else {
+            // Tin nhắn văn bản
+            ws.sendMessage(
+              content,
+              senderName,
+              senderImage,
+              isForward: true,
+            );
+          }
         });
 
         print("[FORWARD WS] Đã gửi tin nhắn forward đến chatId: $chatId");
@@ -256,12 +283,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     }
   }
 
-
-
   List<Map<String, dynamic>> _flattenGroupedData(Map<String, List<Map<String, dynamic>>> groupedData) {
     return groupedData.values.expand((list) => list).toList();
   }
-
 
   ///Action giữ tin nhắn
   void _handleMessageAction(String action, Map<String, dynamic> message) async {
@@ -282,7 +306,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
       final friendsList = _flattenGroupedData(friendsGrouped);
       final groupsList = _flattenGroupedData(groupsGrouped);
 
-      final selectedIds = await Navigator.push<List<String>>(
+      final result = await Navigator.push<Map<String, dynamic>>(
         context,
         MaterialPageRoute(
           builder: (_) => ForwardSelectScreen(
@@ -295,8 +319,27 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
       );
 
       if (!mounted) return;
-      if (selectedIds != null) {
-        _forwardMessageToSelected(message, selectedIds, friendsList, groupsList);
+      if (result != null) {
+        final List<String> targetChatIds = List<String>.from(result['receivers'] ?? []);
+
+        final dynamic messageData = result['message'];
+        String editedMessage = '';
+
+        if (messageData is String) {
+          editedMessage = messageData;
+        } else if (messageData is Map<String, dynamic>) {
+          editedMessage = messageData['content'] ?? '';
+        }
+
+        final forwardedMessage = {
+          ...message,
+          'content': editedMessage,
+        };
+
+        _forwardMessageToSelected(forwardedMessage, targetChatIds, friendsList, groupsList);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Chuyển tiếp tin nhắn thành công!')),
+        );
       }
       return;
     }
@@ -344,6 +387,44 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     print("Replying to: ${_replyingMessage?['messageId']}, deleteReason: ${_replyingMessage?['deleteReason']}");
   }
 
+  ///Hàm check phân ngày
+  bool _isDifferentDay(String date1, String date2) {
+    final d1 = DateTime.parse(date1).toLocal();
+    final d2 = DateTime.parse(date2).toLocal();
+    return d1.year != d2.year || d1.month != d2.month || d1.day != d2.day;
+  }
+
+  ///Hàm format phân ngày
+  String _formatDateLabel(String iso) {
+    if (iso.isEmpty) return "";
+    final dt = DateTime.tryParse(iso)?.toLocal();
+    if (dt == null) return "";
+    // Format: "HH:mm dd/MM/yyyy"
+    return "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')} ${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}";
+  }
+
+  ///Widget phân ngày
+  Widget _buildDateSeparator(String isoDate) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade300,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            _formatDateLabel(isoDate),
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.black54,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -447,6 +528,28 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                   ],
                 ),
               ),
+            if (_selectedImageUrl != null)
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                height: 100,
+                child: Stack(
+                  children: [
+                    Image.network(_selectedImageUrl!, fit: BoxFit.cover),
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: IconButton(
+                        icon: Icon(Icons.close, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            _selectedImageUrl = null;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             if (_isSearching && _searchResults.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4),
@@ -483,22 +586,46 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                 controller: _listViewController,
                 reverse: true,
                 itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  final message = _messages[index];
-                  final isUserMessage = message['userId'].toString() == widget.userId;
-                  final isCurrentSearchMatch = _searchResults.isNotEmpty &&
-                      _searchResults[_currentSearchIndex]['messageId'] == message['messageId'];
+                  itemBuilder: (context, index) {
+                    final message = _messages[index];
+                    final isUserMessage = message['userId'].toString() == widget.userId;
+                    final isCurrentSearchMatch = _searchResults.isNotEmpty &&
+                        _searchResults[_currentSearchIndex]['messageId'] == message['messageId'];
 
-                  return MessageCard(
-                    key: ValueKey(message['messageId']),
-                    message: message,
-                    isUserMessage: isUserMessage,
-                    formatTimestamp: _formatTimestamp,
-                    onAction: _handleMessageAction,
-                    isGroup: widget.isGroup,
-                    highlight: isCurrentSearchMatch,
-                  );
-                },
+                    List<Widget> messageWidgets = [];
+
+                    // Nếu là tin nhắn đầu tiên hoặc khác ngày với tin nhắn kế tiếp thì chèn ngày
+                    bool showDateSeparator = false;
+                    if (index == _messages.length - 1) {
+                      // Tin nhắn cuối cùng (cũ nhất) luôn hiển thị ngày
+                      showDateSeparator = true;
+                    } else {
+                      final currentTimestamp = message['timestamp'] ?? '';
+                      final nextTimestamp = _messages[index + 1]['timestamp'] ?? '';
+                      if (_isDifferentDay(currentTimestamp, nextTimestamp)) {
+                        showDateSeparator = true;
+                      }
+                    }
+
+                    if (showDateSeparator) {
+                      messageWidgets.add(_buildDateSeparator(message['timestamp'] ?? ''));
+                    }
+
+                    messageWidgets.add(MessageCard(
+                      key: ValueKey(message['messageId']),
+                      message: message,
+                      isUserMessage: isUserMessage,
+                      formatTimestamp: _formatTimestamp,
+                      onAction: _handleMessageAction,
+                      isGroup: widget.isGroup,
+                      highlight: isCurrentSearchMatch,
+                    ));
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: messageWidgets,
+                    );
+                  }
               )
             ),
             if (!_isSearching)
