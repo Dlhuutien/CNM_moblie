@@ -2,6 +2,8 @@ import 'package:chating_app/screens/create_group_screen.dart';
 import 'package:chating_app/services/chat_api.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:chating_app/widgets/full_screen_image.dart';
 
 class ChatProfileScreen extends StatefulWidget {
   final String chatId;
@@ -70,6 +72,39 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
       });
     } catch (e) {
       print("Lỗi khi load dữ liệu profile: $e");
+    }
+  }
+
+  ///Hàm mở file, link
+  Future<void> openFileUrl(BuildContext context, String url) async {
+    if (!await Permission.manageExternalStorage.isGranted) {
+      final granted = await Permission.manageExternalStorage.request();
+      if (!granted.isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Cần cấp quyền quản lý file để mở."),
+            action: SnackBarAction(
+              label: "Cài đặt",
+              onPressed: () => openAppSettings(),
+            ),
+          ),
+        );
+        return;
+      }
+    }
+
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("URL không hợp lệ.")),
+      );
+      return;
+    }
+
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Không thể mở file. Hãy đảm bảo bạn có ứng dụng phù hợp.")),
+      );
     }
   }
 
@@ -145,8 +180,10 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
               title: Text("Block", style: TextStyle(color: Colors.red)),
             ),
             const SizedBox(height: 10),
-            const Text("Shared Images",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text("Shared Images", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -157,12 +194,25 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
               ),
               itemCount: imageUrls.length,
               itemBuilder: (context, index) {
-                return Image.network(imageUrls[index], fit: BoxFit.cover);
+                final url = imageUrls[index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => FullScreenImage(imageUrl: url)));
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(url, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) {
+                      return const Center(child: Icon(Icons.broken_image));
+                    }),
+                  ),
+                );
               },
             ),
             const SizedBox(height: 20),
-            const Text("Shared Links",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text("Shared Links", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
             const SizedBox(height: 10),
             Column(
               children: linkMessages.map((msg) {
@@ -173,21 +223,19 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
                     ? ListTile(
                         leading: const Icon(Icons.link, color: Colors.blue),
                         title: Text(url,
-                            style: const TextStyle(color: Colors.blue)),
-                        onTap: () async {
-                          final uri = Uri.tryParse(url);
-                          if (uri != null && await canLaunchUrl(uri)) {
-                            await launchUrl(uri,
-                                mode: LaunchMode.externalApplication);
-                          }
-                        },
-                      )
+                            style: const TextStyle(color: Colors.blue),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,),
+                            onTap: () => openFileUrl(context, url),
+                )
                     : const SizedBox.shrink();
               }).toList(),
             ),
             const SizedBox(height: 20),
-            const Text("Shared Files",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text("Shared Files", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
             const SizedBox(height: 10),
             Column(
               children: fileMessages.map((msg) {
@@ -196,13 +244,7 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
                 return ListTile(
                   leading: const Icon(Icons.attach_file, color: Colors.grey),
                   title: Text(fileName, overflow: TextOverflow.ellipsis),
-                  onTap: () async {
-                    final uri = Uri.tryParse(url);
-                    if (uri != null && await canLaunchUrl(uri)) {
-                      await launchUrl(uri,
-                          mode: LaunchMode.externalApplication);
-                    }
-                  },
+                  onTap: () => openFileUrl(context, url),
                 );
               }).toList(),
             ),

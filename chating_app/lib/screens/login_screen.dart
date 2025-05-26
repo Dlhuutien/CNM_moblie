@@ -8,6 +8,7 @@ import 'package:chating_app/screens/forgot_pass_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:chating_app/services/env_config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -46,6 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
     ObjectUser? user = await ApiService.login(context, phone, password);
 
     if (user != null) {
+      await _saveUserInfo(user);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MainScreen(user: user)),
@@ -116,6 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
             location: data['location'] ?? '',
           );
 
+          await _saveUserInfo(existedUser);
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => MainScreen(user: existedUser)),
@@ -151,6 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
               location: '',
             );
 
+            await _saveUserInfo(newUser);
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => MainScreen(user: newUser)),
@@ -173,6 +177,58 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     }
   }
+
+  ///Hàm Lưu thông tin khi đã đăng nhập
+  Future<void> _saveUserInfo(ObjectUser user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userID', user.userID);
+    await prefs.setString('userName', user.hoTen);
+    await prefs.setString('userEmail', user.email);
+    await prefs.setString('userPhone', user.soDienThoai);
+    await prefs.setString('userPassword', user.password);
+    await prefs.setString('userGender', user.gender);
+    await prefs.setString('userBirthday', user.birthday);
+    await prefs.setString('userWork', user.work);
+    await prefs.setString('userImage', user.image);
+    await prefs.setString('userLocation', user.location);
+  }
+
+  ///Hàm load thông tin khi đã đăng nhập
+  Future<ObjectUser?> _loadUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userID = prefs.getString('userID');
+    if (userID == null) return null;
+
+    return ObjectUser(
+      userID: userID,
+      hoTen: prefs.getString('userName') ?? '',
+      email: prefs.getString('userEmail') ?? '',
+      soDienThoai: prefs.getString('userPhone') ?? '',
+      password: prefs.getString('userPassword') ?? '',
+      gender: prefs.getString('userGender') ?? 'Nam',
+      birthday: prefs.getString('userBirthday') ?? '',
+      work: prefs.getString('userWork') ?? '',
+      image: prefs.getString('userImage') ?? '',
+      location: prefs.getString('userLocation') ?? '',
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoggedIn();
+  }
+
+  void _checkLoggedIn() async {
+    ObjectUser? user = await _loadUserInfo();
+    if (user != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreen(user: user)),
+      );
+    }
+  }
+
 
 
   @override

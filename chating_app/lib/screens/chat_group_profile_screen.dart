@@ -8,9 +8,10 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:chating_app/services/env_config.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:http_parser/http_parser.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:chating_app/widgets/full_screen_image.dart';
 
 class ChatGroupProfileScreen extends StatefulWidget {
   final String chatId;
@@ -187,8 +188,38 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
     }
   }
 
+  ///Hàm mở file, link
+  Future<void> openFileUrl(BuildContext context, String url) async {
+    if (!await Permission.manageExternalStorage.isGranted) {
+      final granted = await Permission.manageExternalStorage.request();
+      if (!granted.isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Cần cấp quyền quản lý file để mở."),
+            action: SnackBarAction(
+              label: "Cài đặt",
+              onPressed: () => openAppSettings(),
+            ),
+          ),
+        );
+        return;
+      }
+    }
 
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("URL không hợp lệ.")),
+      );
+      return;
+    }
 
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Không thể mở file. Hãy đảm bảo bạn có ứng dụng phù hợp.")),
+      );
+    }
+  }
 
   ///Hàm giải tán nhóm
   void _disbandGroup() async {
@@ -503,7 +534,18 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 4, mainAxisSpacing: 4),
               itemCount: imageUrls.length,
               itemBuilder: (context, index) {
-                return Image.network(imageUrls[index], fit: BoxFit.cover);
+                final url = imageUrls[index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => FullScreenImage(imageUrl: url)));
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(url, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) {
+                      return const Center(child: Icon(Icons.broken_image));
+                    }),
+                  ),
+                );
               },
             ),
 
@@ -517,13 +559,11 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
               return url != null
                   ? ListTile(
                 leading: const Icon(Icons.link, color: Colors.blue),
-                title: Text(url, style: const TextStyle(color: Colors.blue)),
-                onTap: () async {
-                  final uri = Uri.tryParse(url);
-                  if (uri != null && await canLaunchUrl(uri)) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  }
-                },
+                title: Text(url, style: const TextStyle(color: Colors.blue),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                onTap: () => openFileUrl(context, url),
               )
                   : const SizedBox.shrink();
             }),
@@ -539,12 +579,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
               return ListTile(
                 leading: const Icon(Icons.attach_file, color: Colors.grey),
                 title: Text(fileName, overflow: TextOverflow.ellipsis),
-                onTap: () async {
-                  final uri = Uri.tryParse(url);
-                  if (uri != null && await canLaunchUrl(uri)) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  }
-                },
+                onTap: () => openFileUrl(context, url),
               );
             }),
           ],
