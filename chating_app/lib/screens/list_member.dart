@@ -91,7 +91,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
           });
         }
       } else {
-        print("Lỗi khi tìm: ${response.body}");
+        print("Searching Error: ${response.body}");
       }
     } catch (e) {
       print("Lỗi khi tìm theo số điện thoại: $e");
@@ -148,7 +148,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
 
     if (selectedIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Vui lòng chọn ít nhất 1 thành viên")),
+        const SnackBar(content: Text("Please select at least 1 member")),
       );
       return;
     }
@@ -166,12 +166,12 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
 
     if (!hasError) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Thêm thành viên thành công!")),
+        const SnackBar(content: Text("Add member successfully!")),
       );
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Một số thành viên không được thêm.")),
+        const SnackBar(content: Text("Some members can not join in.")),
       );
     }
   }
@@ -339,20 +339,20 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
     return ListView(
       children: filtered.map((member) {
         final isMe = member['userId'].toString() == widget.userId;
-        final name = isMe ? 'Tôi' : member['name'] ?? '';
+        final name = isMe ? 'Me' : member['name'] ?? '';
         final avatar = member['imageUrl'] ?? '';
         final role = member['role'] ?? '';
 
         String roleText;
         switch (role) {
           case 'owner':
-            roleText = 'Trưởng nhóm';
+            roleText = 'Owner';
             break;
           case 'admin':
-            roleText = 'Phó nhóm';
+            roleText = 'Admin';
             break;
           default:
-            roleText = 'Thành viên';
+            roleText = 'Members';
         }
 
         return ListTile(
@@ -422,7 +422,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
               const Divider(),
               if (getCurrentUserRole() == 'owner' && member['role'] == 'member') ...[
                 ListTile(
-                  title: const Text("Bổ nhiệm làm phó nhóm"),
+                  title: const Text("Appointed as deputy group leader"),
                   onTap: () async {
                     Navigator.pop(context);
                     await ChatApi.changeGroupRole(
@@ -433,19 +433,19 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
                     );
                     await _loadData(); // cập nhật lại danh sách
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Đã bổ nhiệm làm phó nhóm")),
+                      const SnackBar(content: Text("Appointed as deputy group leader")),
                     );
                   },
                 ),
                 ListTile(
-                  title: const Text("Chặn thành viên"),
+                  title: const Text("Banned members"),
                   onTap: () {
                     Navigator.pop(context);
                     // gọi API chặn thành viên
                   },
                 ),
                 ListTile(
-                  title: const Text("Xoá khỏi nhóm", style: TextStyle(color: Colors.red)),
+                  title: const Text("Remove from group", style: TextStyle(color: Colors.red)),
                   onTap: () async {
                     Navigator.pop(context);
                     await ChatApi.removeGroupMember(
@@ -455,7 +455,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
                     );
                     await _loadData();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Đã xoá thành viên")),
+                      const SnackBar(content: Text("Delete members successfully")),
                     );
                   },
                 ),
@@ -479,7 +479,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
         // gọi API kết bạn
       },
       style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-      child: const Text("Kết bạn", style: TextStyle(color: Colors.white)),
+      child: const Text("Add friend", style: TextStyle(color: Colors.white)),
     );
   }
 }

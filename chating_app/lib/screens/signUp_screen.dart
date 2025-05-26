@@ -168,7 +168,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           }
           if (hint == 'Enter your name') {
             if (!RegExp(r"^([A-ZÀ-Ỵ][a-zà-ỵ]+)( [A-ZÀ-Ỵ][a-zà-ỵ]+)*$", unicode: true).hasMatch(value.trim())) {
-              return 'Tên phải viết hoa chữ cái đầu và không chứa ký tự đặc biệt';
+              return 'Name must be capitalized and must not contain special characters';
             }
           }
           if (hint == 'Enter your phone number') {

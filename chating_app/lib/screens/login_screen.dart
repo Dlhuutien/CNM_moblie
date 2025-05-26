@@ -32,14 +32,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!phoneValid) {
       setState(() {
-        _errorMessage = 'Số điện thoại phải đúng 10 chữ số.';
+        _errorMessage = 'Phone number must be exactly 10 digits.';
       });
       return;
     }
 
     if (!passwordValid) {
       setState(() {
-        _errorMessage = 'Mật khẩu 8-16 ký tự, không dấu cách.';
+        _errorMessage = 'Password 8-16 characters, no spaces.';
       });
       return;
     }
@@ -54,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } else {
       setState(() {
-        _errorMessage = 'Số điện thoại hoặc mật khẩu không đúng!';
+        _errorMessage = 'Incorrect phone number or password!';
       });
     }
   }
@@ -88,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final email = user?.email;
       if (email == null || email.isEmpty) {
         setState(() {
-          _errorMessage = 'Tài khoản Google không có email!';
+          _errorMessage = 'Google account without email!';
         });
         return;
       }
@@ -161,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           } else {
             setState(() {
-              _errorMessage = 'Không thể tạo tài khoản mới!';
+              _errorMessage = 'Cannot create new account!';
             });
           }
         }
@@ -171,9 +171,9 @@ class _LoginScreenState extends State<LoginScreen> {
         });
       }
     } catch (e) {
-      print("Đăng nhập Google thất bại: $e");
+      print("Google login failed: $e");
       setState(() {
-        _errorMessage = 'Đăng nhập Google thất bại. Vui lòng thử lại!';
+        _errorMessage = 'Google Sign In Failed. Please Try Again!';
       });
     }
   }

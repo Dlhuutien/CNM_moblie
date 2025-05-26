@@ -79,7 +79,7 @@ class _MainScreenState extends State<MainScreen> {
                 SizedBox(width: 5),
                 Flexible(
                   child: Text(
-                    "Tìm kiếm người dùng...",
+                    "Searching user...",
                     style: TextStyle(color: Colors.grey, fontSize: 10),
                     overflow: TextOverflow.ellipsis,
                   ),

@@ -78,7 +78,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
               final index = _messages.indexWhere((m) => m['messageId'] == message['msgId']);
               if (index != -1) {
                 _messages[index]['deleteReason'] = 'unsent';
-                _messages[index]['content'] = 'Tin nhắn đã thu hồi';
+                _messages[index]['content'] = 'Message recalled';
               }
             });
           }
@@ -118,7 +118,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
         _messages = messages;
       });
     } catch (e) {
-      print("Lỗi fetchMessages: $e");
+      print("Error fetchMessages: $e");
     }
   }
 
@@ -135,7 +135,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     if (content.isNotEmpty || hasImage) {
       if (hasImage) {
         _webSocketService?.sendMessageWithAttachment(
-          content: content.isNotEmpty ? content : "Đã gửi một ảnh",
+          content: content.isNotEmpty ? content : "Sent a photo",
           attachmentUrl: _selectedImageUrl!,
           // replyToMessage: _replyingMessage,
         );
@@ -197,12 +197,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
           children: [
             ListTile(
               leading: const Icon(Icons.image),
-              title: const Text("Chọn ảnh từ thư viện"),
+              title: const Text("Select photo from library"),
               onTap: () => Navigator.pop(context, 'image'),
             ),
             ListTile(
               leading: const Icon(Icons.attach_file),
-              title: const Text("Chọn tệp từ thiết bị"),
+              title: const Text("Select file from device"),
               onTap: () => Navigator.pop(context, 'file'),
             ),
           ],
@@ -228,7 +228,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
         if (uploaded != null) {
           final isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(file.extension?.toLowerCase());
           _webSocketService?.sendMessageWithAttachment(
-            content: isImage ? "Đã gửi một ảnh" : "Đã gửi một tệp tin: ${file.name}",
+            content: isImage ? "Sent a photo" : "Sent a file: ${file.name}",
             attachmentUrl: uploaded['url']!,
           );
         }
@@ -248,7 +248,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
           userId: widget.userId,
           chatId: chatId,
           onMessage: (msg) {
-            print("[WS] Tin nhắn nhận về: $msg");
+            print("[WS] Message received: $msg");
           },
         );
 
@@ -261,7 +261,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
           // Nếu là tin nhắn đính kèm file, ảnh, voice
           if (attachmentUrl != null && attachmentUrl.isNotEmpty) {
             ws.sendMessageWithAttachment(
-              content: content.isNotEmpty ? content : "Đã chuyển tiếp một tệp tin",
+              content: content.isNotEmpty ? content : "Forwarded a file",
               attachmentUrl: attachmentUrl,
               isForward: true,
             );
@@ -338,7 +338,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
 
         _forwardMessageToSelected(forwardedMessage, targetChatIds, friendsList, groupsList);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Chuyển tiếp tin nhắn thành công!')),
+          SnackBar(content: Text('Message forwarded successfully!')),
         );
       }
       return;
@@ -355,7 +355,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
       setState(() {
         if (deleteType == "unsent") {
           message['deleteReason'] = 'unsent';
-          message['content'] = 'Tin nhắn đã thu hồi';
+          message['content'] = 'Message recalled';
         } else {
           _messages.removeWhere((m) => m['messageId'] == messageId);
         }
@@ -436,7 +436,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
           controller: _searchController,
           autofocus: true,
           decoration: const InputDecoration(
-            hintText: 'Tìm kiếm tin nhắn...',
+            hintText: 'Search messages...',
             border: InputBorder.none,
           ),
           onChanged: (query) {
@@ -476,7 +476,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
             icon: const Icon(Icons.call),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Chức năng gọi sẽ được cập nhật sau")),
+                const SnackBar(content: Text("Call function will be updated later")),
               );
             },
           ),
@@ -511,7 +511,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                   children: [
                     Expanded(
                       child: Text(
-                        "Replying to: ${_replyingMessage!['content'] ?? 'Tin nhắn'}",
+                        "Replying to: ${_replyingMessage!['content'] ?? 'Message'}",
                         style: TextStyle(fontStyle: FontStyle.italic),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

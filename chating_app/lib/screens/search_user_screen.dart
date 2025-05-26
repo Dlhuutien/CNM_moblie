@@ -95,10 +95,10 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
           setState(() {});
         }
       } else {
-        _showMessage("Không tìm thấy người dùng.");
+        _showMessage("User not found.");
       }
     } catch (e) {
-      _showMessage("Lỗi: $e");
+      _showMessage("Error: $e");
     } finally {
       setState(() => _isLoading = false);
     }
@@ -187,9 +187,9 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         Uri.parse("${EnvConfig.baseUrl}/contact/add?userId=$currentUserID&contactId=$contactId"),
       );
       final res = json.decode(response.body);
-      _showMessage(res['message'] ?? "Đã gửi lời mời kết bạn");
+      _showMessage(res['message'] ?? "Friend request sent");
     } catch (e) {
-      _showMessage("Lỗi khi gửi lời mời: $e");
+      _showMessage("Error sending invitation: $e");
     }
   }
 
@@ -206,11 +206,11 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         leading: user['imageUrl'] != null
             ? CircleAvatar(backgroundImage: NetworkImage(user['imageUrl']))
             : const CircleAvatar(child: Icon(Icons.person)),
-        title: Text(user['name'] ?? 'Không tên'),
+        title: Text(user['name'] ?? 'Unname'),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("SĐT: ${user['phone']}"),
+            Text("Phone: ${user['phone']}"),
             Text("Email: ${user['email'] ?? "-"}"),
           ],
         ),
@@ -235,12 +235,12 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
 
   Widget _buildHistoryList() {
     if (searchHistory.isEmpty) {
-      return const Center(child: Text("Chưa có lịch sử tìm kiếm"));
+      return const Center(child: Text("No search history"));
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Lịch sử tìm kiếm", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const Text("History searching", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         Expanded(
           child: ListView.builder(
@@ -254,7 +254,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
 
   Widget _buildSearchResultList() {
     if (searchResult.isEmpty) {
-      return const Center(child: Text("Không tìm thấy người dùng."));
+      return const Center(child: Text("User unfounded."));
     }
     return ListView.builder(
       itemCount: searchResult.length,
@@ -268,7 +268,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
       appBar: AppBar(
         backgroundColor: Colors.blue,
         title: const Text(
-          "Tìm kiếm người dùng",
+          "Searching user",
           style: TextStyle(color: Colors.white),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
@@ -280,7 +280,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
             TextField(
               controller: _phoneController,
               decoration: const InputDecoration(
-                labelText: "Nhập số điện thoại",
+                labelText: "Input phone number",
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.phone,

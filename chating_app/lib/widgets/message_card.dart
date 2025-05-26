@@ -169,7 +169,7 @@ class _MessageCardState extends State<MessageCard> {
             url,
             width: 200,
             fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => const Text('Không thể tải ảnh'),
+            errorBuilder: (context, error, stackTrace) => const Text('Can not upload picture'),
           ),
         ),
       );
@@ -320,9 +320,9 @@ Future<void> downloadFile(BuildContext context, String url, String fileName) asy
       // Nếu từ chối, hỏi mở cài đặt
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("Cần cấp quyền quản lý file để tải."),
+          content: const Text("File management permission required to download."),
           action: SnackBarAction(
-            label: "Cài đặt",
+            label: "Setting",
             onPressed: () {
               openAppSettings();
             },
@@ -336,7 +336,7 @@ Future<void> downloadFile(BuildContext context, String url, String fileName) asy
   // Nếu quyền thì cho phét tải file
   try {
     final dir = await getExternalStorageDirectory();
-    if (dir == null) throw Exception("Không tìm được thư mục lưu");
+    if (dir == null) throw Exception("Cannot find save folder");
 
     final savePath = "${dir.path}/$fileName";
     final dio = Dio();
@@ -346,17 +346,17 @@ Future<void> downloadFile(BuildContext context, String url, String fileName) asy
       savePath,
       onReceiveProgress: (received, total) {
         if (total != -1) {
-          debugPrint("Đã tải: ${(received / total * 100).toStringAsFixed(0)}%");
+          debugPrint("Uploaded: ${(received / total * 100).toStringAsFixed(0)}%");
         }
       },
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Đã lưu $fileName tại: ${dir.path}")),
+      SnackBar(content: Text("Saved $fileName at: ${dir.path}")),
     );
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Tải file thất bại: $e")),
+      SnackBar(content: Text("Download file fail: $e")),
     );
   }
 }
@@ -367,9 +367,9 @@ Future<void> openFileUrl(BuildContext context, String url) async {
     if (!granted.isGranted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("Cần cấp quyền quản lý file để mở."),
+          content: const Text("File management permission required to open."),
           action: SnackBarAction(
-            label: "Cài đặt",
+            label: "Setting",
             onPressed: () => openAppSettings(),
           ),
         ),
@@ -388,7 +388,7 @@ Future<void> openFileUrl(BuildContext context, String url) async {
 
   if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Không thể mở file. Hãy đảm bảo bạn có ứng dụng phù hợp.")),
+      const SnackBar(content: Text("Cannot open file. Make sure you have the correct application..")),
     );
   }
 }
@@ -440,14 +440,14 @@ Widget _buildReplyPreview(Map<String, dynamic> repliedMsg) {
               const Icon(Icons.image, size: 16, color: Colors.grey),
               const SizedBox(width: 4),
               Text(
-                '[Hình ảnh]',
+                '[Picture]',
                 style: const TextStyle(color: Colors.black54, fontStyle: FontStyle.italic),
               ),
             ],
           )
         else
           Text(
-            repliedMsg['content'] ?? 'Tin nhắn đã xóa',
+            repliedMsg['content'] ?? 'Deleted message',
             style: const TextStyle(color: Colors.black87),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

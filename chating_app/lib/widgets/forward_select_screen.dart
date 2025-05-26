@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+ import 'package:flutter/material.dart';
 
 class ForwardSelectScreen extends StatefulWidget {
   final Map<String, dynamic> message;
@@ -51,13 +51,13 @@ class _ForwardSelectScreenState extends State<ForwardSelectScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Chọn bạn bè / nhóm"),
+        title: const Text("Select friends/groups"),
       ),
       body: Column(
         children: [
           const Padding(
             padding: EdgeInsets.all(8),
-            child: Text("Bạn bè", style: TextStyle(fontWeight: FontWeight.bold)),
+            child: Text("Friends", style: TextStyle(fontWeight: FontWeight.bold)),
           ),
           Expanded(
             child: ListView.builder(
@@ -69,7 +69,7 @@ class _ForwardSelectScreenState extends State<ForwardSelectScreen> {
                 print('Friend index=$index, id=$id');
                 return CheckboxListTile(
                   key: ValueKey(id),
-                  title: Text(friend['name'] ?? 'Không tên'),
+                  title: Text(friend['name'] ?? 'Unname'),
                   value: selectedIds.contains(id),
                   onChanged: (bool? value) {
                     if (value == null) return;
@@ -87,7 +87,7 @@ class _ForwardSelectScreenState extends State<ForwardSelectScreen> {
           ),
           const Padding(
             padding: EdgeInsets.all(8),
-            child: Text("Nhóm", style: TextStyle(fontWeight: FontWeight.bold)),
+            child: Text("Group", style: TextStyle(fontWeight: FontWeight.bold)),
           ),
           Expanded(
             child: ListView.builder(
@@ -99,7 +99,7 @@ class _ForwardSelectScreenState extends State<ForwardSelectScreen> {
                 print('Group index=$index, id=$id');
                 return CheckboxListTile(
                   key: ValueKey(id),
-                  title: Text(group['chatName'] ?? 'Nhóm không tên'),
+                  title: Text(group['chatName'] ?? 'Empty name group'),
                   value: selectedIds.contains(id),
                   onChanged: (bool? value) {
                     if (value == null) return;
@@ -139,7 +139,7 @@ class _ForwardSelectScreenState extends State<ForwardSelectScreen> {
                       child: TextField(
                         controller: _messageController,
                         decoration: const InputDecoration(
-                          hintText: "Chỉnh sửa tin nhắn...",
+                          hintText: "Edit message...",
                           border: OutlineInputBorder(),
                           isDense: true,
                         ),

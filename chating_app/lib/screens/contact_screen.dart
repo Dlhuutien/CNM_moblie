@@ -117,16 +117,16 @@ class _FriendListState extends State<FriendList> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xác nhận'),
-        content: const Text('Bạn có chắc chắn muốn xóa bạn này không?'),
+        title: const Text('Confirm'),
+        content: const Text('Are you sure you want to delete this friend?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Xóa', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -136,12 +136,12 @@ class _FriendListState extends State<FriendList> {
       final success = await ChatApi.unfriendContact(widget.user.userID,contactId);
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Xóa bạn thành công')),
+          const SnackBar(content: Text('Deleted friend successfully')),
         );
         await _fetchFriends(); // load lại danh sách bạn bè sau khi xóa
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Xóa bạn thất bại')),
+          const SnackBar(content: Text('Deleted friend fail')),
         );
       }
     }
@@ -153,7 +153,7 @@ class _FriendListState extends State<FriendList> {
     if (isLoading) return const Center(child: CircularProgressIndicator());
 
     if (groupedFriends.isEmpty)
-      return const Center(child: Text("Chưa có bạn bè nào"));
+      return const Center(child: Text("Haven't had any friends yet"));
 
     final sortedKeys = groupedFriends.keys.toList()
       ..sort();
@@ -182,8 +182,8 @@ class _FriendListState extends State<FriendList> {
                     : const CircleAvatar(
                   child: Icon(Icons.person),
                 ),
-                title: Text(friend['name'] ?? 'Không tên'),
-                subtitle: Text(friend['phone'] ?? 'Không có số điện thoại'),
+                title: Text(friend['name'] ?? 'Unname'),
+                subtitle: Text(friend['phone'] ?? 'Do not have phone number'),
                 trailing: SizedBox(
                   width: 150,
                   child: Row(
@@ -265,14 +265,14 @@ class _NotificationListState extends State<NotificationList> {
       Uri.parse("${EnvConfig.baseUrl}/contact/accept?userId=${widget.userId}&senderId=$senderId"),
     );
     if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Đã chấp nhận")));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Accepted")));
       _fetchRequests();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (requests.isEmpty) return const Center(child: Text("Không có lời mời kết bạn"));
+    if (requests.isEmpty) return const Center(child: Text("No friend requests"));
 
     return ListView.builder(
       itemCount: requests.length,
@@ -381,7 +381,7 @@ class _GroupListState extends State<GroupList> {
         });
       }
     } catch (e) {
-      print("Lỗi khi load nhóm: $e");
+      print("Group load fail: $e");
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -414,7 +414,7 @@ class _GroupListState extends State<GroupList> {
           child: isLoading
               ? const Center(child: CircularProgressIndicator())
               : groupedGroups.isEmpty
-              ? const Center(child: Text("Không có nhóm nào"))
+              ? const Center(child: Text("Empty group"))
               : ListView.builder(
             itemCount: sortedKeys.length,
             itemBuilder: (context, index) {

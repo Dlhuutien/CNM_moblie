@@ -127,12 +127,12 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Upload ảnh nhóm thất bại: ${data['message']}")),
+            SnackBar(content: Text("Group photo upload failed: ${data['message']}")),
           );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Upload ảnh nhóm thất bại (status): ${response.statusCode}")),
+          SnackBar(content: Text("Group photo upload failed (status): ${response.statusCode}")),
         );
       }
     }
@@ -154,14 +154,14 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Group name không hợp lệ")),
+        const SnackBar(content: Text("Invalid group name")),
       );
       return;
     }
 
     if (selectedIds.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Cần chọn ít nhất 2 thành viên để tạo nhóm")),
+        const SnackBar(content: Text("You need to select at least 2 members to create a group.")),
       );
       return;
     }
@@ -176,14 +176,14 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       "initialMembers": selectedIds,
     });
 
-    print("Gửi dữ liệu tạo nhóm:");
+    print("Send group creation data:");
     print("Body: $body");
 
     try {
       final response = await http.post(url, headers: headers, body: body);
       final data = jsonDecode(response.body);
 
-      print("Phản hồi từ server:");
+      print("Response from server:");
       print("Status: ${response.statusCode}");
       print("Body: ${response.body}");
 
@@ -197,10 +197,10 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         showDialog(
           context: context,
           builder: (_) => AlertDialog(
-            title: const Text("Tạo nhóm thất bại"),
+            title: const Text("Creating group fail"),
             content: Text(data["message"] ?? "Đã xảy ra lỗi không xác định."),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text("Đóng")),
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text("Close")),
             ],
           ),
         );
@@ -292,7 +292,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
                           if (_searchResult.isNotEmpty) ...[
                             const Text(
-                              "Kết quả tìm kiếm",
+                              "Search result...",
                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             const SizedBox(height: 8),
@@ -320,7 +320,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                           ],
 
                           const Text(
-                            "Friends List",
+                            "List Friends",
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           const SizedBox(height: 8),

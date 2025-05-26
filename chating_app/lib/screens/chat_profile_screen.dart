@@ -71,7 +71,7 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
         linkMessages = links;
       });
     } catch (e) {
-      print("Lỗi khi load dữ liệu profile: $e");
+      print("Error loading profile data: $e");
     }
   }
 
@@ -82,9 +82,9 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
       if (!granted.isGranted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text("Cần cấp quyền quản lý file để mở."),
+            content: const Text("File management permission required to open."),
             action: SnackBarAction(
-              label: "Cài đặt",
+              label: "Setting",
               onPressed: () => openAppSettings(),
             ),
           ),
@@ -103,7 +103,7 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
 
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Không thể mở file. Hãy đảm bảo bạn có ứng dụng phù hợp.")),
+        const SnackBar(content: Text("Unable to open file. Make sure you have the correct application.")),
       );
     }
   }
