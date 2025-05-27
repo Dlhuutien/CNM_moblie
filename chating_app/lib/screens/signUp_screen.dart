@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:chating_app/services/env_config.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:chating_app/screens/update_profile_signup.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -18,6 +19,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _obscurePassword = true;
 
   String? errorMessage;
 
@@ -60,8 +62,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
            ),
         );
 
+        // Future.delayed(const Duration(milliseconds: 800), () {
+        //   Navigator.pushReplacementNamed(context, '/login');
+        // });
         Future.delayed(const Duration(milliseconds: 800), () {
-          Navigator.pushReplacementNamed(context, '/login');
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => UpdateProfileSignUp(
+                name: _nameController.text,
+                phone: _phoneController.text,
+              ),
+            ),
+          );
         });
       }
     } else {
@@ -106,10 +119,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            _buildTextField('Enter your name'.tr(), _nameController, Icons.person),
-                            _buildTextField('Enter your phone number'.tr(), _phoneController, Icons.phone, keyboardType: TextInputType.phone),
-                            _buildTextField('Enter your password'.tr(), _passwordController, Icons.lock, obscureText: true),
-                            _buildTextField('Confirm your password'.tr(), _confirmPasswordController, Icons.lock, obscureText: true),
+                            _buildTextField('Enter your name'.tr(), _nameController, Icons.person, fieldType: 'name'),
+                            _buildTextField('Enter your phone number'.tr(), _phoneController, Icons.phone, keyboardType: TextInputType.phone, fieldType: 'phone'),
+                            _buildTextField('Enter your password'.tr(), _passwordController, Icons.lock, obscureText: true, fieldType: 'password'),
+                            _buildTextField('Confirm your password'.tr(), _confirmPasswordController, Icons.lock, obscureText: true, fieldType: 'password'),
                             if (errorMessage != null) ...[
                               const SizedBox(height: 10),
                               Text(errorMessage!, style: const TextStyle(color: Colors.red)),
@@ -151,6 +164,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Widget _buildTextField(String hint, TextEditingController controller, IconData icon, {
+    required String fieldType,
     bool obscureText = false,
     TextInputType keyboardType = TextInputType.text,
   }) {
@@ -158,32 +172,52 @@ class _SignUpScreenState extends State<SignUpScreen> {
       padding: const EdgeInsets.only(bottom: 20.0),
       child: TextFormField(
         controller: controller,
-        obscureText: obscureText,
+        obscureText: obscureText ? _obscurePassword : false,
         keyboardType: keyboardType,
         decoration: InputDecoration(
           prefixIcon: Icon(icon),
           hintText: hint,
           border: const UnderlineInputBorder(),
+          errorStyle: const TextStyle(
+            fontSize: 13,
+            height: 1.4,
+            overflow: TextOverflow.visible,
+          ),
+          errorMaxLines: 3,
+          suffixIcon: obscureText
+              ? IconButton(
+            icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+            onPressed: () {
+              setState(() {
+                _obscurePassword = !_obscurePassword;
+              });
+            },
+          )
+              : null,
         ),
         validator: (value) {
           if (value == null || value.trim().isEmpty) {
-            return '$hint is required';
+            return '$hint is required'.tr();
           }
-          if (hint == 'Enter your name') {
-            if (!RegExp(r"^([A-ZÀ-Ỵ][a-zà-ỵ]+)( [A-ZÀ-Ỵ][a-zà-ỵ]+)*$", unicode: true).hasMatch(value.trim())) {
-              return 'Name must be capitalized and must not contain special characters'.tr();
-            }
+
+          switch (fieldType) {
+            case 'name':
+              if (!RegExp(r"^([A-ZÀ-Ỵ][a-zà-ỵ]+)( [A-ZÀ-Ỵ][a-zà-ỵ]+)*$", unicode: true).hasMatch(value.trim())) {
+                return 'Name must be capitalized and must not contain special characters'.tr();
+              }
+              break;
+            case 'phone':
+              if (!RegExp(r"^\d{10}$").hasMatch(value.trim())) {
+                return 'Phone number must be exactly 10 digits'.tr();
+              }
+              break;
+            case 'password':
+              if (!RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$%^&*(),.?":{}|<>])[^\s]{8,16}$').hasMatch(value)) {
+                return 'Password must be 8-16 characters, include at least 1 uppercase letter, 1 number, and 1 special character, with no spaces'.tr();
+              }
+              break;
           }
-          if (hint == 'Enter your phone number') {
-            if (!RegExp(r"^\d{10}").hasMatch(value.trim())){
-              return 'Phone number must be exactly 10 digits'.tr();
-            }
-          }
-          if (hint == 'Enter your password') {
-            if (!RegExp(r'^[\S]{8,16}\$').hasMatch(value)) {
-              return 'Password must be 8-16 characters, no spaces'.tr();
-            }
-          }
+
           return null;
         },
       ),

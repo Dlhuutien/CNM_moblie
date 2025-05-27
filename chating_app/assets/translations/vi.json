@@ -1,4 +1,9 @@
 {
+  "Profile updated successfully": "Cập nhật hồ sơ thành công",
+  "Current password is incorrect.": "Mật khẩu hiện tại không đúng.",
+  "COMPLETE PROFILE": "Hoàn tất hồ sơ của bạn",
+  "Your name": "Tên của bạn",
+  "Submit": "Xác nhận",
   "Get started": "Bắt đầu",
   "welcome": "Chào mừng bạn đến với ứng dụng của chúng tôi!",
   "Language": "Ngôn ngữ",
@@ -171,6 +176,7 @@
   "Confirm your password": "Xác nhận mật khẩu",
   "Already have an account? Login": "Đã có tài khoản? Đăng nhập",
   "Password must be 8-16 characters, no spaces": "Mật khẩu từ 8-16 ký tự, không chứa khoảng trắng",
+  "Password must be 8-16 characters, include at least 1 uppercase letter, 1 number, and 1 special character, with no spaces": "Mật khẩu phải có từ 8–16 ký tự, bao gồm ít nhất 1 chữ in hoa, 1 số và 1 ký tự đặc biệt, không chứa khoảng trắng",
   "Group Chatting": "Nhóm chat",
   "Video Call" : "Gọi Video",
   "File Sharing" : "Chia sẽ tài liệu",

@@ -1,4 +1,9 @@
 {
+  "Profile updated successfully": "Profile updated successfully",
+  "Current password is incorrect.": "Current password is incorrect.",
+  "COMPLETE PROFILE": "Complete Your Profile",
+  "Your name": "Your name",
+  "Submit": "Submit",
   "Get started": "Get started",
   "welcome": "Welcome to our app!",
   "Language": "Language",
@@ -171,6 +176,7 @@
   "Confirm your password": "Confirm your password",
   "Already have an account? Login": "Already have an account? Login",
   "Password must be 8-16 characters, no spaces": "Password must be 8-16 characters, no spaces",
+  "Password must be 8-16 characters, include at least 1 uppercase letter, 1 number, and 1 special character, with no spaces": "Password must be 8-16 characters, include at least 1 uppercase letter, 1 number, and 1 special character, with no spaces",
   "Group Chatting" : "Group Chatting",
   "Video Call" : "Video Call",
   "File Sharing" : "File Sharing",
