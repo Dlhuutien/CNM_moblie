@@ -9,6 +9,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:chating_app/services/env_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:easy_localization/easy_localization.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -32,14 +34,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!phoneValid) {
       setState(() {
-        _errorMessage = 'Phone number must be exactly 10 digits.';
+        _errorMessage = 'Phone number must be exactly 10 digits'.tr();
       });
       return;
     }
 
     if (!passwordValid) {
       setState(() {
-        _errorMessage = 'Password 8-16 characters, no spaces.';
+        _errorMessage = 'Password 8-16 characters, no spaces.'.tr();
       });
       return;
     }
@@ -54,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } else {
       setState(() {
-        _errorMessage = 'Incorrect phone number or password!';
+        _errorMessage = 'Incorrect phone number or password!'.tr();
       });
     }
   }
@@ -88,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final email = user?.email;
       if (email == null || email.isEmpty) {
         setState(() {
-          _errorMessage = 'Google account without email!';
+          _errorMessage = 'Google account without email!'.tr();
         });
         return;
       }
@@ -161,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           } else {
             setState(() {
-              _errorMessage = 'Cannot create new account!';
+              _errorMessage = 'Cannot create new account!'.tr();
             });
           }
         }
@@ -173,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       print("Google login failed: $e");
       setState(() {
-        _errorMessage = 'Google Sign In Failed. Please Try Again!';
+        _errorMessage = 'Google Sign In Failed. Please Try Again!'.tr();
       });
     }
   }
@@ -260,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
-                      ),
+                      ).tr(),
                     ),
                   ),
                   Expanded(
@@ -272,9 +274,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           TextField(
                             controller: _phoneController,
-                            decoration: const InputDecoration(
+                            decoration:  InputDecoration(
                               prefixIcon: Icon(Icons.phone),
-                              hintText: "Enter your phone number",
+                              hintText: "Enter your phone number".tr(),
                               border: UnderlineInputBorder(),
                             ),
                             keyboardType: TextInputType.phone,
@@ -282,9 +284,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 20),
                           TextField(
                             controller: _passwordController,
-                            decoration: const InputDecoration(
+                            decoration:  InputDecoration(
                               prefixIcon: Icon(Icons.lock),
-                              hintText: "Enter your password",
+                              hintText: "Enter your password".tr(),
                               border: UnderlineInputBorder(),
                             ),
                             obscureText: true,
@@ -302,7 +304,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: const Text(
                                 "Forgot password?",
                                 style: TextStyle(color: Colors.blue),
-                              ),
+                              ).tr(),
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -315,7 +317,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text("Don’t have an account? "),
+                              const Text("Don’t have an account?").tr(),
                               GestureDetector(
                                 onTap: () {
                                   Navigator.pushNamed(context, '/sign_up');
@@ -326,7 +328,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     color: Colors.blue,
                                     fontWeight: FontWeight.bold,
                                   ),
-                                ),
+                                ).tr(),
                               ),
                             ],
                           ),
@@ -343,16 +345,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: const Text(
                               "Login",
                               style: TextStyle(fontSize: 18, color: Colors.white),
-                            ),
+                            ).tr(),
                           ),
 
                           const SizedBox(height: 20),
-                          const Row(
+                           Row(
                             children: [
                               Expanded(child: Divider()),
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 8.0),
-                                child: Text("or you can"),
+                                child: Text("or you can".tr()),
                               ),
                               Expanded(child: Divider()),
                             ],

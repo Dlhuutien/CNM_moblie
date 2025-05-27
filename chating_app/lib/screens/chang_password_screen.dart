@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:chating_app/services/env_config.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   final String? phone;
@@ -26,7 +27,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       if (_newPassController.text != _confirmPassController.text) {
         setState(() {
-          _message = 'Password confirmation does not match.';
+          _message = 'Password confirmation does not match'.tr();
         });
         return;
       }
@@ -50,17 +51,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         final result = jsonDecode(response.body);
         if (result["ok"] == 1) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Password changed successfully!")),
+             SnackBar(content: Text("Password changed successfully!".tr())),
           );
           Navigator.pop(context);
         } else {
           setState(() {
-            _message = result["message"] ?? "An error occurred.";
+            _message = result["message"] ?? "An error occurred.".tr();
           });
         }
       } catch (e) {
         setState(() {
-          _message = "Failed to connect to server.";
+          _message = "Failed to connect to server.".tr();
         });
       } finally {
         setState(() {
@@ -83,7 +84,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         ),
         validator: (value) {
           if (value == null || value.isEmpty) return '$label is required';
-          if (value.length < 8) return 'Password must be at least 8 characters';
+          if (value.length < 8) return 'Password must be at least 8 characters'.tr();
           return null;
         },
       ),
@@ -97,7 +98,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       appBar: AppBar(
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
-        title: const Text("Change Password"),
+        title: const Text("Change Password").tr(),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -115,7 +116,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       const Text(
                         "Please enter your current and new password:",
                         style: TextStyle(fontSize: 16),
-                      ),
+                      ).tr(),
                       const SizedBox(height: 16),
                       if (_isLoading) const LinearProgressIndicator(),
                       Row(
@@ -123,13 +124,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         children: [
                           TextButton(
                             onPressed: () => setState(() => _isHidden = !_isHidden),
-                            child: Text(_isHidden ? "Show" : "Hide"),
+                            child: Text(_isHidden ? "Show".tr() : "Hide".tr()),
                           ),
                         ],
                       ),
-                      _buildPasswordField("Current Password", _oldPassController),
-                      _buildPasswordField("New Password", _newPassController),
-                      _buildPasswordField("Confirm New Password", _confirmPassController),
+                      _buildPasswordField("Current Password".tr(), _oldPassController),
+                      _buildPasswordField("New Password".tr(), _newPassController),
+                      _buildPasswordField("Confirm New Password".tr(), _confirmPassController),
 
                       const SizedBox(height: 20),
                       ElevatedButton(
@@ -144,7 +145,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         child: const Text(
                           "Change Password",
                           style: TextStyle(fontSize: 16, color: Colors.white),
-                        ),
+                        ).tr(),
                       ),
                       const SizedBox(height: 20),
                       if (_message.isNotEmpty)

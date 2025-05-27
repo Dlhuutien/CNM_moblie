@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:chating_app/data/user.dart';
 import 'package:http_parser/http_parser.dart'; // dùng cho MediaType
 import 'package:chating_app/services/env_config.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 
 class ProfileScreen extends StatefulWidget {
@@ -50,7 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Update fail: ${response.body}")),
+        SnackBar(content: Text("Update fail  ${response.body}".tr())),
       );
     }
   }
@@ -84,12 +85,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           await updateUserField('image', imageUrl);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Upload picture fail: ${data['message']}")),
+            SnackBar(content: Text("Upload picture fail ${data['message']}".tr())),
           );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Upload picture fail (status): ${response.statusCode}")),
+          SnackBar(content: Text("Upload picture fail (status) ${response.statusCode}".tr())),
         );
       }
     }
@@ -129,13 +130,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       String? newValue = await showDialog<String>(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text("Edit $label"),
+          title: Text("Edit $label".tr()),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(hintText: "Input $label new"),
+            decoration: InputDecoration(hintText: "Input $label new".tr()),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: Text("Cancel")),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text("Cancel".tr())),
             TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text("Save")),
           ],
         ),
@@ -144,15 +145,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (newValue != null && newValue.trim().isNotEmpty && newValue != currentValue) {
         if (fieldName == 'email' && !RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(newValue)) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Email invalid")),
-          );
+              SnackBar(content: Text("Email invalid".tr()),
+          ));
           return;
         }
 
         if (fieldName == 'phone' && !RegExp(r'^\d10$').hasMatch(newValue)) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Invalid phone number")),
-          );
+          var showSnackBar = ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(content: Text("Invalid phone number".tr()),
+          ));
           return;
         }
 
@@ -160,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             !RegExp(r"^([A-ZÀ-Ỵ][a-zà-ỵ]+)( [A-ZÀ-Ỵ][a-zà-ỵ]+)*$", unicode: true)
                 .hasMatch(newValue.trim())) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Name must be capitalized and must not contain special characters")),
+             SnackBar(content: Text("Name must be capitalized and must not contain special characters".tr())),
           );
           return;
         }
@@ -256,13 +257,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoRow('Name:', 'name', _editableUser.hoTen),
-                  _buildInfoRow('Phone:', 'phone', _editableUser.soDienThoai),
-                  _buildInfoRow('Gender:', 'gender', _editableUser.gender),
-                  _buildInfoRow('Birthday:', 'birthday', _formatDateOnly(_editableUser.birthday)),
-                  _buildInfoRow('Email:', 'email', _editableUser.email),
+                  _buildInfoRow('Name'.tr(), 'name', _editableUser.hoTen),
+                  _buildInfoRow('Phone'.tr(), 'phone', _editableUser.soDienThoai),
+                  _buildInfoRow('Gender'.tr(), 'gender', _editableUser.gender),
+                  _buildInfoRow('Birthday'.tr(), 'birthday', _formatDateOnly(_editableUser.birthday)),
+                  _buildInfoRow('Email'.tr(), 'email', _editableUser.email),
                   // _buildInfoRow('Work:', 'work', _editableUser.work),
-                  _buildInfoRow('Location:', 'location', _editableUser.location),
+                  _buildInfoRow('Location'.tr(), 'location', _editableUser.location),
                 ],
               ),
             ),
