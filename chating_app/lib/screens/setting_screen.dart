@@ -31,9 +31,9 @@ class SettingsScreen extends StatelessWidget {
             _buildDropdownSetting(
               title: "Language".tr(),
               currentValue: context.locale.languageCode == 'vi' ? "Tieng Viet" : "English",
-              items: ["Tieng Viet", "English"],
+              items: ["Vietnamese", "English"],
               onChanged: (value) {
-                if (value == "Tieng Viet") {
+                if (value == "Vietnamese") {
                   context.setLocale(const Locale('vi'));
                 } else {
                   context.setLocale(const Locale('en'));
