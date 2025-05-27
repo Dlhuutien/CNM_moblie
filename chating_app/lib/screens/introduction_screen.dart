@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 class IntroductionScreen extends StatelessWidget {
   const IntroductionScreen({super.key});
 
@@ -11,26 +12,26 @@ class IntroductionScreen extends StatelessWidget {
           buildPage(
             context,
             'assets/images/Introduction_group_chating.png',
-            'Group Chatting',
-            'Collaborate effortlessly with multiple people in a single conversation, sharing messages, files, and media.',
+            'Group Chatting'.tr(),
+            'Collaborate effortlessly with multiple people in a single conversation, sharing messages, files, and media.'.tr(),
           ),
           buildPage(
             context,
             'assets/images/Introduction_video_calls.png',
-            'Video Calls',
-            'Connect face-to-face with friends and family through high-quality video calling.',
+            'Video Call'.tr(),
+            'Connect face-to-face with friends and family through high-quality video calling.'.tr(),
           ),
           buildPage(
             context,
             'assets/images/Introduction_profile.png',
-            'Profile',
-            'Showcase a customizable profile, including photos, bios, and personal details.',
+            'Profile'.tr(),
+            'Showcase a customizable profile, including photos, bios, and personal details.'.tr(),
           ),
           buildPage(
             context,
             'assets/images/Introduction_file_sharing.png',
-            'File Sharing',
-            'Share documents, images, and videos instantly with your contacts.',
+            'File Sharing'.tr(),
+            'Share documents, images, and videos instantly with your contacts.'.tr(),
           ),
         ],
       ),
@@ -97,7 +98,7 @@ class IntroductionScreen extends StatelessWidget {
                   child: const Text(
                     "Get started",
                     style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
+                  ).tr(),
                 ),
               ],
             ),

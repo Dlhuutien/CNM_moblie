@@ -1,5 +1,5 @@
 {
-  "get_started": "Get started",
+  "Get started": "Get started",
   "welcome": "Welcome to our app!",
   "Language": "Language",
   "Mode": "Mode",
@@ -98,7 +98,7 @@
   "An error occurred. Please try again later.": "An error occurred. Please try again later.",
   "Forgot Password": "Forgot Password",
   "Enter your email to reset password:": "Enter your email to reset password:",
-  "Send reset email\",": "Send reset email",
+  "Send reset email": "Send reset email",
   "Collaborate effortlessly with multiple people in a single conversation, sharing messages, files, and media.": "Collaborate effortlessly with multiple people in a single conversation, sharing messages, files, and media.",
   "Connect face-to-face with friends and family through high-quality video calling.": "Connect face-to-face with friends and family through high-quality video calling.",
   "Showcase a customizable profile, including photos, bios, and personal details.": "Showcase a customizable profile, including photos, bios, and personal details.",
@@ -170,5 +170,8 @@
   "Enter your name": "Enter your name",
   "Confirm your password": "Confirm your password",
   "Already have an account? Login": "Already have an account? Login",
-  "Password must be 8-16 characters, no spaces": "Password must be 8-16 characters, no spaces"
+  "Password must be 8-16 characters, no spaces": "Password must be 8-16 characters, no spaces",
+  "Group Chatting" : "Group Chatting",
+  "Video Calls" : "Video Calls",
+  "File Sharing" : "File Sharing"
 }
