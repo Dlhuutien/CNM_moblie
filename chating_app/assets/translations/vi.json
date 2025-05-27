@@ -1,5 +1,5 @@
 {
-  "get_started": "Bắt đầu",
+  "Get started": "Bắt đầu",
   "welcome": "Chào mừng bạn đến với ứng dụng của chúng tôi!",
   "Language": "Ngôn ngữ",
   "Mode": "Giao diện",
@@ -170,5 +170,8 @@
   "Enter your name": "Nhập tên của bạn",
   "Confirm your password": "Xác nhận mật khẩu",
   "Already have an account? Login": "Đã có tài khoản? Đăng nhập",
-  "Password must be 8-16 characters, no spaces": "Mật khẩu từ 8-16 ký tự, không chứa khoảng trắng"
+  "Password must be 8-16 characters, no spaces": "Mật khẩu từ 8-16 ký tự, không chứa khoảng trắng",
+  "Group Chatting": "Nhóm chat",
+  "Video Calls" : "Gọi Video",
+  "File Sharing" : "Chia sẽ tài liệu"
 }
