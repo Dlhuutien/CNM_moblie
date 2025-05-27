@@ -23,6 +23,25 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   bool _isLoading = false;
   String _message = '';
 
+  Future<bool> _checkOldPassword() async {
+    final url = Uri.parse('${EnvConfig.baseUrl}/user/account?phone=${widget.phone}');
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data is List && data.isNotEmpty) {
+        final user = data[0];
+        final storedPassword = user["password"];
+        if (storedPassword == _oldPassController.text.trim()) {
+          return true;
+        }
+      }
+    }
+    setState(() {
+      _message = "Current password is incorrect.".tr();
+    });
+    return false;
+  }
+
   Future<void> _changePassword() async {
     if (_formKey.currentState?.validate() ?? false) {
       if (_newPassController.text != _confirmPassController.text) {
@@ -36,6 +55,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         _isLoading = true;
         _message = '';
       });
+
+      // Kiểm tra mật khẩu cũ trước
+      bool isOldPassCorrect = await _checkOldPassword();
+      if (!isOldPassCorrect) {
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
 
       try {
         final response = await http.post(
@@ -51,7 +79,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         final result = jsonDecode(response.body);
         if (result["ok"] == 1) {
           ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(content: Text("Password changed successfully!".tr())),
+            SnackBar(content: Text("Password changed successfully!".tr())),
           );
           Navigator.pop(context);
         } else {
@@ -71,7 +99,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     }
   }
 
-  Widget _buildPasswordField(String label, TextEditingController controller) {
+  Widget _buildPasswordField(String label, TextEditingController controller, {bool isNewPassword = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextFormField(
@@ -81,10 +109,22 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           labelText: label,
           prefixIcon: const Icon(Icons.lock),
           border: const OutlineInputBorder(),
+          errorStyle: const TextStyle(
+            fontSize: 13,
+            height: 1.4,
+            overflow: TextOverflow.visible,
+          ),
+          errorMaxLines: 3,
         ),
         validator: (value) {
-          if (value == null || value.isEmpty) return '$label is required';
-          if (value.length < 8) return 'Password must be at least 8 characters'.tr();
+          if (value == null || value.isEmpty) return '$label is required'.tr();
+
+          if (isNewPassword) {
+            if (!RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$%^&*(),.?":{}|<>])[^\s]{8,16}$').hasMatch(value)) {
+              return 'Password must be 8-16 characters, include at least 1 uppercase letter, 1 number, and 1 special character, with no spaces'.tr();
+            }
+          }
+
           return null;
         },
       ),
@@ -128,10 +168,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           ),
                         ],
                       ),
-                      _buildPasswordField("Current Password".tr(), _oldPassController),
-                      _buildPasswordField("New Password".tr(), _newPassController),
-                      _buildPasswordField("Confirm New Password".tr(), _confirmPassController),
-
+                      _buildPasswordField("Current Password".tr(), _oldPassController, isNewPassword: false),
+                      _buildPasswordField("New Password".tr(), _newPassController, isNewPassword: true),
+                      _buildPasswordField("Confirm New Password".tr(), _confirmPassController, isNewPassword: true),
                       const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: _changePassword,
@@ -151,7 +190,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       if (_message.isNotEmpty)
                         Text(
                           _message,
-                          style: const TextStyle(color: Colors.blue),
+                          style: const TextStyle(color: Colors.red),
                           textAlign: TextAlign.center,
                         ),
                     ],

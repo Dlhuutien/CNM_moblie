@@ -22,6 +22,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
   String _errorMessage = '';
 
@@ -284,12 +285,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 20),
                           TextField(
                             controller: _passwordController,
-                            decoration:  InputDecoration(
+                            obscureText: _obscurePassword,
+                            decoration: InputDecoration(
                               prefixIcon: Icon(Icons.lock),
                               hintText: "Enter your password".tr(),
                               border: UnderlineInputBorder(),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
                             ),
-                            obscureText: true,
                           ),
                           const SizedBox(height: 10),
                           Align(
