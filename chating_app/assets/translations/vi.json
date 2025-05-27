@@ -1,4 +1,8 @@
 {
+  "get_started": "Bắt đầu",
+  "welcome": "Chào mừng bạn đến với ứng dụng của chúng tôi!",
+  "Language": "Ngôn ngữ",
+  "Mode": "Giao diện",
   "Password confirmation does not match": "Xác nhận mật khẩu không khớp",
   "Password changed successfully!": "Đổi mật khẩu thành công!",
   "An error occurred.": "Đã xảy ra lỗi.",

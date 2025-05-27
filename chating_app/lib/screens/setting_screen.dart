@@ -30,7 +30,7 @@ class SettingsScreen extends StatelessWidget {
             // Language Setting
             _buildDropdownSetting(
               title: "Language".tr(),
-              currentValue: context.locale.languageCode == 'vi' ? "Tieng Viet" : "English",
+              currentValue: context.locale.languageCode == 'vi' ? "Vietnamese" : "English",
               items: ["Vietnamese", "English"],
               onChanged: (value) {
                 if (value == "Vietnamese") {

@@ -1,4 +1,8 @@
 {
+  "get_started": "Get started",
+  "welcome": "Welcome to our app!",
+  "Language": "Language",
+  "Mode": "Mode",
   "Password confirmation does not match": "Password confirmation does not match",
   "Password changed successfully!": "Password changed successfully!",
   "An error occurred.": "An error occurred.",
