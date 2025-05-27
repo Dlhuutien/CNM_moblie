@@ -50,8 +50,8 @@
   "Left the group": "Đã rời nhóm",
   "Not left group yet, try again later": "Chưa rời được nhóm, hãy thử lại sau",
   "Edit": "Chỉnh sửa",
-  "Input": "Nhập",
-  "new": "mới",
+  "Input new": "Nhập mới",
+
   "Save": "Lưu",
   "Group rename error": "Lỗi đổi tên nhóm",
   "Update fail": "Cập nhật thất bại",
@@ -172,6 +172,7 @@
   "Already have an account? Login": "Đã có tài khoản? Đăng nhập",
   "Password must be 8-16 characters, no spaces": "Mật khẩu từ 8-16 ký tự, không chứa khoảng trắng",
   "Group Chatting": "Nhóm chat",
-  "Video Calls" : "Gọi Video",
-  "File Sharing" : "Chia sẽ tài liệu"
+  "Video Call" : "Gọi Video",
+  "File Sharing" : "Chia sẽ tài liệu",
+  "No user found with this email." : "Không tìm thấy người dùng email này"
 }

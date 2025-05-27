@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -18,22 +19,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         email: _emailController.text.trim(),
       );
       setState(() {
-        _message = "Password reset email has been sent!";
+        _message = "Password reset email has been sent!".tr();
       });
     } on FirebaseAuthException catch (e) {
       print("Firebase error: ${e.code} - ${e.message}");
-      String error = "Failed to send password reset email.";
+      String error = "Failed to send password reset email.".tr();
       if (e.code == 'user-not-found') {
-        error = "No user found with this email.";
+        error = "No user found with this email.".tr();
       } else if (e.code == 'invalid-email') {
-        error = "Invalid email address.";
+        error = "Invalid email address".tr();
       }
       setState(() {
         _message = error;
       });
     } catch (e) {
       setState(() {
-        _message = "An error occurred. Please try again later.";
+        _message = "An error occurred. Please try again later.".tr();
       });
     }
   }
@@ -45,7 +46,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       appBar: AppBar(
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
-        title: const Text("Forgot Password"),
+        title: const Text("Forgot Password").tr(),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -64,7 +65,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         const Text(
                           "Enter your email to reset password:",
                           style: TextStyle(fontSize: 16),
-                        ),
+                        ).tr(),
                         const SizedBox(height: 16),
                         TextField(
                           controller: _emailController,
@@ -88,7 +89,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           child: const Text(
                             "Send reset email",
                             style: TextStyle(fontSize: 16, color: Colors.white),
-                          ),
+                          ).tr(),
                         ),
                         const SizedBox(height: 20),
                         if (_message.isNotEmpty)

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:chating_app/services/env_config.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -35,13 +36,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
       setState(() => errorMessage = null);
 
       if (_passwordController.text != _confirmPasswordController.text) {
-        setState(() => errorMessage = 'Password does not match');
+        setState(() => errorMessage = 'Password does not match'.tr());
         return;
       }
 
       final phoneExists = await _isPhoneExists(_phoneController.text);
       if (phoneExists) {
-        setState(() => errorMessage = 'Phone number already exists');
+        setState(() => errorMessage = 'Phone number already exists'.tr());
         return;
       }
 
@@ -54,7 +55,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sign up successfully!')),
+           SnackBar(content:
+           Text('Sign up successfull'.tr())
+           ),
         );
 
         Future.delayed(const Duration(milliseconds: 800), () {
@@ -62,7 +65,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         });
       }
     } else {
-      setState(() => errorMessage = 'Please fill in all fields correctly');
+      setState(() => errorMessage = 'Please fill in all fields correctly'.tr());
     }
   }
 
@@ -91,7 +94,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
-                      ),
+                      ).tr(),
                     ),
                   ),
                   Expanded(
@@ -103,10 +106,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            _buildTextField('Enter your name', _nameController, Icons.person),
-                            _buildTextField('Enter your phone number', _phoneController, Icons.phone, keyboardType: TextInputType.phone),
-                            _buildTextField('Enter your password', _passwordController, Icons.lock, obscureText: true),
-                            _buildTextField('Confirm your password', _confirmPasswordController, Icons.lock, obscureText: true),
+                            _buildTextField('Enter your name'.tr(), _nameController, Icons.person),
+                            _buildTextField('Enter your phone number'.tr(), _phoneController, Icons.phone, keyboardType: TextInputType.phone),
+                            _buildTextField('Enter your password'.tr(), _passwordController, Icons.lock, obscureText: true),
+                            _buildTextField('Confirm your password'.tr(), _confirmPasswordController, Icons.lock, obscureText: true),
                             if (errorMessage != null) ...[
                               const SizedBox(height: 10),
                               Text(errorMessage!, style: const TextStyle(color: Colors.red)),
@@ -124,14 +127,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               child: const Text(
                                 "Sign Up",
                                 style: TextStyle(fontSize: 18, color: Colors.white),
-                              ),
+                              ).tr(),
                             ),
                             const SizedBox(height: 20),
                             TextButton(
                               onPressed: () {
                                 Navigator.pushReplacementNamed(context, '/login');
                               },
-                              child: const Text('Already have an account? Login', style: TextStyle(color: Colors.blue)),
+                              child: const Text('Already have an account? Login', style: TextStyle(color: Colors.blue)).tr(),
                             ),
                           ],
                         ),
@@ -168,17 +171,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
           }
           if (hint == 'Enter your name') {
             if (!RegExp(r"^([A-ZÀ-Ỵ][a-zà-ỵ]+)( [A-ZÀ-Ỵ][a-zà-ỵ]+)*$", unicode: true).hasMatch(value.trim())) {
-              return 'Name must be capitalized and must not contain special characters';
+              return 'Name must be capitalized and must not contain special characters'.tr();
             }
           }
           if (hint == 'Enter your phone number') {
             if (!RegExp(r"^\d{10}").hasMatch(value.trim())){
-              return 'Phone number must be exactly 10 digits';
+              return 'Phone number must be exactly 10 digits'.tr();
             }
           }
           if (hint == 'Enter your password') {
             if (!RegExp(r'^[\S]{8,16}\$').hasMatch(value)) {
-              return 'Password must be 8-16 characters, no spaces';
+              return 'Password must be 8-16 characters, no spaces'.tr();
             }
           }
           return null;

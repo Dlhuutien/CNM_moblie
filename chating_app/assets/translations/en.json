@@ -50,8 +50,8 @@
   "Left the group": "Left the group",
   "Not left group yet, try again later": "Not left group yet, try again later",
   "Edit": "Edit",
-  "Input": "Input",
-  "new": "new",
+  "Input new": "Input new",
+
   "Save": "Save",
   "Group rename error": "Group rename error",
   "Update fail": "Update fail",
@@ -172,6 +172,7 @@
   "Already have an account? Login": "Already have an account? Login",
   "Password must be 8-16 characters, no spaces": "Password must be 8-16 characters, no spaces",
   "Group Chatting" : "Group Chatting",
-  "Video Calls" : "Video Calls",
-  "File Sharing" : "File Sharing"
+  "Video Call" : "Video Call",
+  "File Sharing" : "File Sharing",
+  "No user found with this email." : "No user found with this email."
 }
