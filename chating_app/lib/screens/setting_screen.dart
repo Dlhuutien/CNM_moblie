@@ -14,7 +14,18 @@ class SettingsScreen extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // Xóa hết thông tin đã lưu
+    // await prefs.clear(); // Xóa hết thông tin đã lưu
+    // Xóa từng key đã lưu user info
+    await prefs.remove('userID');
+    await prefs.remove('userName');
+    await prefs.remove('userEmail');
+    await prefs.remove('userPhone');
+    await prefs.remove('userPassword');
+    await prefs.remove('userGender');
+    await prefs.remove('userBirthday');
+    await prefs.remove('userWork');
+    await prefs.remove('userImage');
+    await prefs.remove('userLocation');
 
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }

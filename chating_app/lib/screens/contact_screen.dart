@@ -234,7 +234,7 @@ class _NotificationListState extends State<NotificationList> {
     }
   }
 
-  /// Gửi yêu cầu chấp nhận lời mời kết bạn
+  /// Chấp nhận lời mời kết bạn
   Future<void> _acceptRequest(String senderId) async {
     final response = await http.post(
       Uri.parse("${EnvConfig.baseUrl}/contact/accept?userId=${widget.userId}&senderId=$senderId"),
@@ -242,6 +242,28 @@ class _NotificationListState extends State<NotificationList> {
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar( SnackBar(content: Text("Accepted").tr()));
       _fetchRequests();
+    }
+  }
+
+  /// Từ chối lời mời kết bạn
+  Future<void> _denyRequest(String senderId) async {
+    final response = await http.post(
+      Uri.parse("${EnvConfig.baseUrl}/contact/deny?userId=${widget.userId}&senderId=$senderId"),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Denied contact request").tr()),
+      );
+      _fetchRequests(); // Cập nhật lại danh sách
+    } else if (response.statusCode == 404) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Request not found").tr()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to deny request").tr()),
+      );
     }
   }
 
@@ -271,7 +293,7 @@ class _NotificationListState extends State<NotificationList> {
               ),
               IconButton(
                 icon: const Icon(Icons.close, color: Colors.red),
-                onPressed: () {},
+                onPressed: () => _denyRequest(request['senderId']),
               ),
             ],
           ),
