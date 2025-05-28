@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:chating_app/services/chat_api.dart';
 import 'chat_detail_screen.dart';
 import 'package:flutter/foundation.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ChatScreen extends StatefulWidget {
   final ObjectUser user;
@@ -15,7 +16,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  String _selectedTab = "All";
+  String _selectedTab = "All".tr();
   Timer? _refreshTimer;
   List<Map<String, dynamic>> _chats = [];
 
@@ -83,15 +84,15 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildTab("All", isSelected: _selectedTab == "All"),
-                _buildTab("Unread", isSelected: _selectedTab == "Unread"),
-                _buildTab("Group", isSelected: _selectedTab == "Group"),
+                _buildTab("All".tr(), isSelected: _selectedTab == "All"),
+                _buildTab("Unread".tr(), isSelected: _selectedTab == "Unread"),
+                _buildTab("Group".tr(), isSelected: _selectedTab == "Group"),
               ],
             ),
           ),
-          const Padding(
+           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-            child: Text("Messages", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            child: Text("Messages".tr(), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ),
 
           if (_chats.isEmpty)

@@ -47,7 +47,7 @@ class SettingsScreen extends StatelessWidget {
             // Mode Setting
             _buildDropdownSetting(
               title: "Mode".tr(),
-              currentValue: Theme.of(context).brightness == Brightness.dark ? "Dark mode" : "Light mode",
+              currentValue: Theme.of(context).brightness == Brightness.dark ? "Dark mode": "Light mode",
               items: ["Light mode", "Dark mode"],
               onChanged: (value) {
                 if (value == "Dark mode") {
@@ -72,8 +72,8 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 );
               },
-              child: const Text(
-                "Change Password",
+              child:  Text(
+                "Change Password".tr(),
                 style: TextStyle(
                   color: Colors.red,
                   fontSize: 16,
@@ -86,12 +86,12 @@ class SettingsScreen extends StatelessWidget {
 
             GestureDetector(
               onTap: () => _logout(context),
-              child: const Row(
+              child:  Row(
                 children: [
                   Icon(Icons.logout, color: Colors.red),
                   SizedBox(width: 10),
                   Text(
-                    "Logout",
+                    "Logout".tr(),
                     style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                   ),
                 ],

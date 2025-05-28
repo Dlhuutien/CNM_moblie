@@ -1,4 +1,5 @@
  import 'package:flutter/material.dart';
+ import 'package:easy_localization/easy_localization.dart';
 
 class ForwardSelectScreen extends StatefulWidget {
   final Map<String, dynamic> message;
@@ -69,7 +70,7 @@ class _ForwardSelectScreenState extends State<ForwardSelectScreen> {
                 print('Friend index=$index, id=$id');
                 return CheckboxListTile(
                   key: ValueKey(id),
-                  title: Text(friend['name'] ?? 'Unname'),
+                  title: Text(friend['name'] ?? 'Unname').tr(),
                   value: selectedIds.contains(id),
                   onChanged: (bool? value) {
                     if (value == null) return;
@@ -85,9 +86,9 @@ class _ForwardSelectScreenState extends State<ForwardSelectScreen> {
               },
             ),
           ),
-          const Padding(
+           Padding(
             padding: EdgeInsets.all(8),
-            child: Text("Group", style: TextStyle(fontWeight: FontWeight.bold)),
+            child: Text("Group", style: TextStyle(fontWeight: FontWeight.bold)).tr(),
           ),
           Expanded(
             child: ListView.builder(
@@ -99,7 +100,7 @@ class _ForwardSelectScreenState extends State<ForwardSelectScreen> {
                 print('Group index=$index, id=$id');
                 return CheckboxListTile(
                   key: ValueKey(id),
-                  title: Text(group['chatName'] ?? 'Empty name group'),
+                  title: Text(group['chatName'] ?? 'Empty name group').tr(),
                   value: selectedIds.contains(id),
                   onChanged: (bool? value) {
                     if (value == null) return;
@@ -138,8 +139,8 @@ class _ForwardSelectScreenState extends State<ForwardSelectScreen> {
                     Expanded(
                       child: TextField(
                         controller: _messageController,
-                        decoration: const InputDecoration(
-                          hintText: "Edit message...",
+                        decoration:  InputDecoration(
+                          hintText: "Edit message...".tr(),
                           border: OutlineInputBorder(),
                           isDense: true,
                         ),

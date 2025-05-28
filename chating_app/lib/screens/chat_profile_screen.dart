@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:chating_app/widgets/full_screen_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ChatProfileScreen extends StatefulWidget {
   final String chatId;
@@ -82,9 +83,9 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
       if (!granted.isGranted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text("File management permission required to open."),
+            content: const Text("File management permission required to open").tr(),
             action: SnackBarAction(
-              label: "Setting",
+              label: "Setting".tr(),
               onPressed: () => openAppSettings(),
             ),
           ),
@@ -103,7 +104,7 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
 
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Unable to open file. Make sure you have the correct application.")),
+         SnackBar(content: Text("Unable to open file. Make sure you have the correct application").tr()),
       );
     }
   }
@@ -122,7 +123,7 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text("Profile"),
+        title: const Text("Profile").tr(),
         actions: [
           IconButton(
             icon: const Icon(Icons.call),
@@ -145,26 +146,26 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
             ),
             const SizedBox(height: 10),
             Text(
-              partnerInfo!['name'] ?? 'No name',
+              partnerInfo!['name'] ?? 'No name'.tr(),
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             Text(
-              partnerInfo!['email'] ?? 'No email',
+              partnerInfo!['email'] ?? 'No email'.tr(),
               style: const TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 20),
             ListTile(
               leading: const Icon(Icons.phone),
-              title: Text(partnerInfo!['phone'] ?? 'No phone'),
+              title: Text(partnerInfo!['phone'] ?? 'No phone'.tr()),
             ),
             ListTile(
               leading: const Icon(Icons.location_on),
-              title: Text(partnerInfo!['location'] ?? 'No location'),
+              title: Text(partnerInfo!['location'] ?? 'No location'.tr()),
             ),
             ListTile(
               leading: const Icon(Icons.group_add),
-              title: const Text("Create group"),
+              title: const Text("Create group").tr(),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -175,14 +176,14 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
                   );
                 }
             ),
-            const ListTile(
+             ListTile(
               leading: Icon(Icons.block, color: Colors.red),
-              title: Text("Block", style: TextStyle(color: Colors.red)),
+              title: Text("Block", style: TextStyle(color: Colors.red)).tr(),
             ),
             const SizedBox(height: 10),
-            const Align(
+             Align(
               alignment: Alignment.centerLeft,
-              child: Text("Shared Images", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              child: Text("Shared Images", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)).tr(),
             ),
             GridView.builder(
               shrinkWrap: true,
@@ -209,9 +210,9 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
               },
             ),
             const SizedBox(height: 20),
-            const Align(
+             Align(
               alignment: Alignment.centerLeft,
-              child: Text("Shared Links", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              child: Text("Shared Links", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)).tr(),
             ),
             const SizedBox(height: 10),
             Column(
@@ -232,9 +233,9 @@ class _ChatProfileScreenState extends State<ChatProfileScreen> {
               }).toList(),
             ),
             const SizedBox(height: 20),
-            const Align(
+             Align(
               alignment: Alignment.centerLeft,
-              child: Text("Shared Files", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              child: Text("Shared Files", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)).tr(),
             ),
             const SizedBox(height: 10),
             Column(

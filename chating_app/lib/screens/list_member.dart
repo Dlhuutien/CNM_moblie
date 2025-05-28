@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:chating_app/services/env_config.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ListMemberScreen extends StatefulWidget {
   final String userId;
@@ -148,7 +149,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
 
     if (selectedIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select at least 1 member")),
+         SnackBar(content: Text("Please select at least 1 member").tr()),
       );
       return;
     }
@@ -166,12 +167,12 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
 
     if (!hasError) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Add member successfully!")),
+         SnackBar(content: Text("Add member successfully").tr()),
       );
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Some members can not join in.")),
+         SnackBar(content: Text("Some members can not join in.").tr()),
       );
     }
   }
@@ -191,15 +192,15 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
         appBar: AppBar(
           backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
-          title: const Text("Group Members"),
+          title: const Text("Group Members").tr(),
           bottom: TabBar(
             labelColor: Colors.white,
             indicatorColor: Colors.white,
             tabs: _isMember
-                ? const [Tab(text: "Members")]
-                : const [
-              Tab(text: "Add Members"),
-              Tab(text: "Members"),
+                ?  [Tab(text: "Members".tr())]
+                :  [
+              Tab(text: "Add Members".tr()),
+              Tab(text: "Members".tr()),
             ],
           ),
         ),
@@ -209,8 +210,8 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
               padding: const EdgeInsets.all(12),
               child: TextField(
                 controller: _searchController,
-                decoration: const InputDecoration(
-                  hintText: "Search",
+                decoration:  InputDecoration(
+                  hintText: "Search".tr(),
                   prefixIcon: Icon(Icons.search),
                   border: OutlineInputBorder(),
                 ),
@@ -319,7 +320,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
                 borderRadius: BorderRadius.circular(8)),
           ),
           child: const Text(
-              "Add Selected Members", style: TextStyle(color: Colors.white)),
+              "Add Selected Members", style: TextStyle(color: Colors.white)).tr(),
         ),
         const SizedBox(height: 20),
       ],
@@ -346,13 +347,13 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
         String roleText;
         switch (role) {
           case 'owner':
-            roleText = 'owner';
+            roleText = 'owner'.tr();
             break;
           case 'admin':
-            roleText = 'admin';
+            roleText = 'admin'.tr();
             break;
           default:
-            roleText = 'members';
+            roleText = 'members'.tr();
         }
 
         return ListTile(
@@ -422,7 +423,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
               const Divider(),
               if (getCurrentUserRole() == 'owner' && member['role'] == 'member') ...[
                 ListTile(
-                  title: const Text("Appointed as deputy group leader"),
+                  title: const Text("Appointed as deputy group leader").tr(),
                   onTap: () async {
                     Navigator.pop(context);
                     await ChatApi.changeGroupRole(
@@ -433,19 +434,19 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
                     );
                     await _loadData(); // cập nhật lại danh sách
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Appointed as deputy group leader")),
+                       SnackBar(content: Text("Appointed as deputy group leader").tr()),
                     );
                   },
                 ),
                 ListTile(
-                  title: const Text("Banned members"),
+                  title: const Text("Banned members").tr(),
                   onTap: () {
                     Navigator.pop(context);
                     // gọi API chặn thành viên
                   },
                 ),
                 ListTile(
-                  title: const Text("Remove from group", style: TextStyle(color: Colors.red)),
+                  title: const Text("Remove from group", style: TextStyle(color: Colors.red)).tr(),
                   onTap: () async {
                     Navigator.pop(context);
                     await ChatApi.removeGroupMember(
@@ -455,7 +456,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
                     );
                     await _loadData();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Delete members successfully")),
+                       SnackBar(content: Text("Delete members successfully").tr()),
                     );
                   },
                 ),
@@ -479,7 +480,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
         // gọi API kết bạn
       },
       style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-      child: const Text("Add friend", style: TextStyle(color: Colors.white)),
+      child: const Text("Add friend", style: TextStyle(color: Colors.white)).tr(),
     );
   }
 }

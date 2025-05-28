@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:chating_app/services/env_config.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class SearchUserScreen extends StatefulWidget {
   final ObjectUser user;
@@ -95,7 +96,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
           setState(() {});
         }
       } else {
-        _showMessage("User not found.");
+        _showMessage("User not found".tr());
       }
     } catch (e) {
       _showMessage("Error: $e");
@@ -112,7 +113,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: "User Found",
+      barrierLabel: "User Found".tr(),
       barrierColor: Colors.black54,
       transitionDuration: Duration.zero,
       transitionBuilder: (context, animation, secondaryAnimation, child) => child,
@@ -121,7 +122,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           title: Center(
             child: Text(
-              "User Found",
+              "User Found".tr(),
               style: TextStyle(
                 color: Colors.blue.shade700,
                 fontWeight: FontWeight.bold,
@@ -139,14 +140,14 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                     backgroundImage: NetworkImage(user['imageUrl']),
                   ),
                 const SizedBox(height: 10),
-                Text("Name: ${user['name']}"),
-                Text("Phone: ${user['phone']}"),
-                Text("Email: ${user['email']}"),
+                Text("Name ${user['name']}".tr()),
+                Text("Phone ${user['phone']}").tr(),
+                Text("Email ${user['email']}".tr()),
                 const SizedBox(height: 16),
                 if (user['friend'] == true)
-                  const Text("Already friends", style: TextStyle(color: Colors.green))
+                  const Text("Already friends", style: TextStyle(color: Colors.green)).tr()
                 else if (user['friendRequestSent'] == true)
-                  const Text("Friend request sent", style: TextStyle(color: Colors.orange))
+                  const Text("Friend request sent", style: TextStyle(color: Colors.orange)).tr()
                 else
                   ElevatedButton.icon(
                     onPressed: () async {
@@ -159,7 +160,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                     label: const Text(
                       "Add Friend",
                       style: TextStyle(color: Colors.white),
-                    ),
+                    ).tr(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                     ),
@@ -173,7 +174,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
                 Navigator.of(context).pop();
                 _phoneController.clear();
               },
-              child: const Text("Close", style: TextStyle(color: Colors.blue)),
+              child: const Text("Close", style: TextStyle(color: Colors.blue)).tr(),
             ),
           ],
         );
@@ -187,7 +188,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         Uri.parse("${EnvConfig.baseUrl}/contact/add?userId=$currentUserID&contactId=$contactId"),
       );
       final res = json.decode(response.body);
-      _showMessage(res['message'] ?? "Friend request sent");
+      _showMessage(res['message'] ?? "Friend request sent".tr());
     } catch (e) {
       _showMessage("Error sending invitation: $e");
     }
@@ -210,8 +211,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Phone: ${user['phone']}"),
-            Text("Email: ${user['email'] ?? "-"}"),
+            Text("Phone ${user['phone']}".tr()),
+            Text("Email ${user['email'] ?? "-"}")
           ],
         ),
         trailing: Row(
@@ -235,12 +236,12 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
 
   Widget _buildHistoryList() {
     if (searchHistory.isEmpty) {
-      return const Center(child: Text("No search history"));
+      return  Center(child: Text("No search history").tr());
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("History searching", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const Text("History searching", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)).tr(),
         const SizedBox(height: 10),
         Expanded(
           child: ListView.builder(
@@ -254,7 +255,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
 
   Widget _buildSearchResultList() {
     if (searchResult.isEmpty) {
-      return const Center(child: Text("User unfounded."));
+      return  Center(child: Text("User unfounded.").tr());
     }
     return ListView.builder(
       itemCount: searchResult.length,
@@ -270,7 +271,7 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
         title: const Text(
           "Searching user",
           style: TextStyle(color: Colors.white),
-        ),
+        ).tr(),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Padding(
@@ -279,8 +280,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
           children: [
             TextField(
               controller: _phoneController,
-              decoration: const InputDecoration(
-                labelText: "Input phone number",
+              decoration:  InputDecoration(
+                labelText: "Input phone number".tr(),
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.phone,
