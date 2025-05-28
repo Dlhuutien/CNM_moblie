@@ -8,6 +8,7 @@ import 'package:chating_app/data/user.dart';
 import 'package:chating_app/screens/chat_detail_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:chating_app/services/env_config.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ContactScreen extends StatelessWidget {
   final ObjectUser user;
@@ -23,10 +24,10 @@ class ContactScreen extends StatelessWidget {
           toolbarHeight: 0,
           backgroundColor: Theme.of(context).colorScheme.background,
           bottom: TabBar(
-            tabs: const [
-              Tab(text: 'Friend List'),
-              Tab(text: 'Your Group'),
-              Tab(text: 'Notification'),
+            tabs:  [
+              Tab(text: 'Friend List'.tr()),
+              Tab(text: 'Your Group'.tr()),
+              Tab(text: 'Notification'.tr()),
             ],
             labelColor: Colors.white, // chữ tab đang chọn
             //Chỉnh màu cho theme
@@ -91,16 +92,16 @@ class _FriendListState extends State<FriendList> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirm'),
-        content: const Text('Are you sure you want to delete this friend?'),
+        title: const Text('Confirm').tr(),
+        content: const Text('Are you sure you want to delete this friend?').tr(),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('Cancel').tr(),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)).tr(),
           ),
         ],
       ),
@@ -110,12 +111,12 @@ class _FriendListState extends State<FriendList> {
       final success = await ChatApi.unfriendContact(widget.user.userID,contactId);
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Deleted friend successfully')),
+           SnackBar(content: Text('Deleted friend successfully').tr()),
         );
         await _fetchFriends(); // load lại danh sách bạn bè sau khi xóa
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Deleted friend fail')),
+           SnackBar(content: Text('Deleted friend fail').tr()),
         );
       }
     }
@@ -127,7 +128,7 @@ class _FriendListState extends State<FriendList> {
     if (isLoading) return const Center(child: CircularProgressIndicator());
 
     if (groupedFriends.isEmpty)
-      return const Center(child: Text("Haven't had any friends yet"));
+      return  Center(child: Text("Haven't had any friends yet").tr());
 
     final sortedKeys = groupedFriends.keys.toList()
       ..sort();
@@ -156,8 +157,8 @@ class _FriendListState extends State<FriendList> {
                     : const CircleAvatar(
                   child: Icon(Icons.person),
                 ),
-                title: Text(friend['name'] ?? 'Unname'),
-                subtitle: Text(friend['phone'] ?? 'Do not have phone number'),
+                title: Text(friend['name'] ?? 'Unname'.tr()),
+                subtitle: Text(friend['phone'] ?? 'Do not have phone number').tr(),
                 trailing: SizedBox(
                   width: 150,
                   child: Row(
@@ -239,14 +240,14 @@ class _NotificationListState extends State<NotificationList> {
       Uri.parse("${EnvConfig.baseUrl}/contact/accept?userId=${widget.userId}&senderId=$senderId"),
     );
     if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Accepted")));
+      ScaffoldMessenger.of(context).showSnackBar( SnackBar(content: Text("Accepted").tr()));
       _fetchRequests();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (requests.isEmpty) return const Center(child: Text("No friend requests"));
+    if (requests.isEmpty) return  Center(child: Text("No friend requests").tr());
 
     return ListView.builder(
       itemCount: requests.length,
@@ -318,7 +319,7 @@ class _GroupListState extends State<GroupList> {
         });
       }
     } catch (e) {
-      print("Group load fail: $e");
+      print("Group load fail: $e".tr());
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -344,14 +345,14 @@ class _GroupListState extends State<GroupList> {
               backgroundColor: Colors.white,
               side: const BorderSide(color: Colors.blue),
             ),
-            child: const Text('Create new group', style: TextStyle(color: Colors.blue)),
+            child: const Text('Create new group', style: TextStyle(color: Colors.blue)).tr(),
           ),
         ),
         Expanded(
           child: isLoading
               ? const Center(child: CircularProgressIndicator())
               : groupedGroups.isEmpty
-              ? const Center(child: Text("Empty group"))
+              ?  Center(child: Text("Empty group").tr())
               : ListView.builder(
             itemCount: sortedKeys.length,
             itemBuilder: (context, index) {
@@ -366,7 +367,7 @@ class _GroupListState extends State<GroupList> {
                     child: Text(letter, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   ),
                   ...groups.map((group) {
-                    final name = group["chatName"] ?? "Unnamed Group";
+                    final name = group["chatName"] ?? "Unnamed Group".tr();
                     return ListTile(
                       leading: CircleAvatar(
                         radius: 22,

@@ -12,6 +12,7 @@ import 'dart:typed_data';
 import 'package:http_parser/http_parser.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:chating_app/widgets/full_screen_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ChatGroupProfileScreen extends StatefulWidget {
   final String chatId;
@@ -89,7 +90,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
 
       setState(() {
         members = membersResponse;
-        groupName = chatData['chatName'] ?? 'Unnamed Group';
+        groupName = chatData['chatName'] ?? 'Unnamed Group'.tr();
         groupDescription = chatData['description'] ?? '';
         groupImageUrl = chatData['imageUrl'] ?? '';
         imageUrls = images;
@@ -139,15 +140,15 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
         final responseData = jsonDecode(response.body);
 
         if (response.statusCode == 200 && responseData["success"] == true) {
-          print("Group photo update successful");
+          print("Group photo update successful".tr());
           setState(() {
             groupImageUrl = imageUrl;
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Group photo update successful")),
+             SnackBar(content: Text("Group photo update successful".tr())),
           );
         } else {
-          print("Image update error: ${response.body}");
+          print("Image update error: ${response.body}".tr());
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Lỗi: ${responseData['message']}")),
           );
@@ -179,11 +180,11 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
       if (response.statusCode == 200 && data["imageUrl"] != null) {
         return data["imageUrl"];
       } else {
-        print("Upload fail: $responseBody");
+        print("Upload fail: $responseBody".tr());
         return null;
       }
     } catch (e) {
-      print("Exception when upload picture: $e");
+      print("Exception when upload picture: $e".tr());
       return null;
     }
   }
@@ -195,9 +196,9 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
       if (!granted.isGranted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text("File management permission required to open."),
+            content: const Text("File management permission required to open").tr(),
             action: SnackBarAction(
-              label: "Setting",
+              label: "Setting".tr(),
               onPressed: () => openAppSettings(),
             ),
           ),
@@ -216,23 +217,23 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
 
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Cannot open file. Make sure you have the correct application.")),
+         SnackBar(content: Text("Cannot open file. Make sure you have the correct application").tr()),
       );
     }
   }
 
   ///Hàm giải tán nhóm
   void _disbandGroup() async {
-    print("Current role: $currentRole");
+    print("Current role $currentRole".tr());
 
     final confirmed = await showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Disband Group"),
-        content: const Text("Are you sure you want to disband this group?"),
+        title: const Text("Disband Group").tr(),
+        content: const Text("Are you sure you want to disband this group?").tr(),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Disband")),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel").tr()),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Disband").tr()),
         ],
       ),
     );
@@ -244,7 +245,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
         await Future.delayed(const Duration(milliseconds: 500)); // Delay nhẹ
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Group Dissolution Successful")),
+           SnackBar(content: Text("Group Dissolution Successful").tr()),
         );
 
         await Future.delayed(const Duration(seconds: 1)); // Cho user thấy thông báo
@@ -271,11 +272,11 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
     final confirmed = await showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Leave Group"),
-        content: const Text("Are you sure you want to leave this group?"),
+        title: const Text("Leave Group").tr(),
+        content: const Text("Are you sure you want to leave this group?").tr(),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Leave")),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel").tr()),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Leave").tr()),
         ],
       ),
     );
@@ -299,7 +300,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
 
       if (leftGroup && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Left the group")),
+           SnackBar(content: Text("Left the group").tr()),
         );
         await Future.delayed(const Duration(seconds: 1));
         if (context.mounted) {
@@ -312,7 +313,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
       } else {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Not left group yet, try again later")),
+             SnackBar(content: Text("Not left group yet, try again later").tr()),
           );
         }
       }
@@ -332,17 +333,17 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
       context: context,
       builder: (context) =>
           AlertDialog(
-            title: Text("Edit $label"),
+            title: Text("Edit $label".tr()),
             content: TextField(
               controller: controller,
-              decoration: InputDecoration(hintText: "Input $label new"),
+              decoration: InputDecoration(hintText: "Input $label new".tr()),
             ),
             actions: [
               TextButton(onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel")),
+                  child: const Text("Cancel").tr()),
               TextButton(
                   onPressed: () => Navigator.pop(context, controller.text),
-                  child: const Text("Save")),
+                  child: const Text("Save").tr()),
             ],
           ),
     );
@@ -359,7 +360,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
           });
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Group rename error: $e")),
+            SnackBar(content: Text("Group rename error: $e".tr())),
           );
         }
       } else if (field == 'description') {
@@ -379,7 +380,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
           });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Update fail: ${response.body}")),
+            SnackBar(content: Text("Update fail ${response.body}".tr())),
           );
         }
       }
@@ -395,7 +396,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text("Profile"),
+        title: const Text("Profile").tr(),
         actions: const [
           Icon(Icons.call),
           SizedBox(width: 8),
@@ -443,18 +444,18 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
             const SizedBox(height: 10),
             ListTile(
               leading: const Icon(Icons.edit),
-              title: const Text("Change group name"),
+              title: const Text("Change group name").tr(),
               onTap: () => _editGroupField("name", "group name", groupName),
             ),
             ListTile(
               leading: const Icon(Icons.description),
-              title: const Text("Change description"),
+              title: const Text("Change description").tr(),
               onTap: () => _editGroupField("description", "description group", groupDescription),
             ),
             if (isAdmin)
               ListTile(
                 leading: const Icon(Icons.person_add),
-                title: const Text("Add new member"),
+                title: const Text("Add new member").tr(),
                 onTap: () async {
                   final result = await Navigator.push(
                     context,
@@ -474,7 +475,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
               ),
             ListTile(
               leading: const Icon(Icons.exit_to_app, color: Colors.red),
-              title: Text(isOwner ? "Disband Group" : "Leave Group", style: const TextStyle(color: Colors.red)),
+              title: Text(isOwner ? "Disband Group".tr() : "Leave Group".tr(), style: const TextStyle(color: Colors.red)),
               onTap: isOwner ? _disbandGroup : _leaveGroup,
             ),
             const Divider(),
@@ -482,7 +483,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Members (${members.length})", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text("Members (${members.length})", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)).tr(),
                 TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -496,7 +497,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
                       ),
                     );
                   },
-                  child: const Text("Show All"),
+                  child: const Text("Show All").tr(),
                 )
               ],
             ),
@@ -506,26 +507,26 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
               String roleText;
               switch (role) {
                 case 'owner':
-                  roleText = 'owner';
+                  roleText = 'owner'.tr();
                   break;
                 case 'admin':
-                  roleText = 'admin';
+                  roleText = 'admin'.tr();
                   break;
                 default:
-                  roleText = 'member';
+                  roleText = 'member'.tr();
               }
 
               return ListTile(
                 leading: CircleAvatar(backgroundImage: NetworkImage(m['imageUrl'] ?? '')),
-                title: Text(m['name'] ?? ''),
+                title: Text(m['Name'.tr()] ?? ''),
                 subtitle: Text(roleText),
               );
             }),
 
             const Divider(),
-            const Align(
+             Align(
               alignment: Alignment.centerLeft,
-              child: Text("Shared Images", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              child: Text("Shared Images", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)).tr(),
             ),
             const SizedBox(height: 10),
             GridView.builder(
@@ -550,9 +551,9 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
             ),
 
             const Divider(),
-            const Align(
+             Align(
               alignment: Alignment.centerLeft,
-              child: Text("Shared Links", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              child: Text("Shared Links", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)).tr(),
             ),
             ...linkMessages.map((msg) {
               final url = RegExp(r'https?:\/\/[^\s]+').firstMatch(msg['content'] ?? '')?.group(0);
@@ -569,9 +570,9 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
             }),
 
             const Divider(),
-            const Align(
+             Align(
               alignment: Alignment.centerLeft,
-              child: Text("Shared Files", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              child: Text("Shared Files", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)).tr(),
             ),
             ...fileMessages.map((msg) {
               final url = msg['attachmentUrl'];

@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:chating_app/widgets/full_screen_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 typedef MessageActionCallback = void Function(String action, Map<String, dynamic> message);
 
@@ -125,10 +126,10 @@ class _MessageCardState extends State<MessageCard> {
 
                 // Phần hiển thị tin nhắn như cũ
                 if (widget.message['deleteReason'] == 'unsent')
-                  const Padding(
+                   Padding(
                     padding: EdgeInsets.only(top: 6.0),
                     child: Text(
-                      'Tin nhắn đã thu hồi',
+                      'Message recalled'.tr(),
                       style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
                     ),
                   )
@@ -191,7 +192,7 @@ class _MessageCardState extends State<MessageCard> {
             url,
             width: 200,
             fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => const Text('Can not upload picture'),
+            errorBuilder: (context, error, stackTrace) => const Text('Can not upload picture').tr(),
           ),
         ),
       );
@@ -232,7 +233,7 @@ class _MessageCardState extends State<MessageCard> {
     final options = <Widget>[
       ListTile(
         leading: const Icon(Icons.reply),
-        title: const Text('Reply'),
+        title: const Text('Reply').tr(),
         onTap: () {
           Navigator.pop(context);
           widget.onAction("reply", widget.message);
@@ -240,7 +241,7 @@ class _MessageCardState extends State<MessageCard> {
       ),
       ListTile(
         leading: const Icon(Icons.forward),
-        title: const Text('Forward'),
+        title: const Text('Forward').tr(),
         onTap: () {
           Navigator.pop(context);
           widget.onAction("forward", widget.message);
@@ -252,7 +253,7 @@ class _MessageCardState extends State<MessageCard> {
       options.addAll([
         ListTile(
           leading: const Icon(Icons.delete),
-          title: const Text('Delete'),
+          title: const Text('Delete').tr(),
           onTap: () {
             Navigator.pop(context);
             widget.onAction("delete", widget.message);
@@ -260,7 +261,7 @@ class _MessageCardState extends State<MessageCard> {
         ),
         ListTile(
           leading: const Icon(Icons.undo),
-          title: const Text('Undo'),
+          title: const Text('Undo').tr(),
           onTap: () {
             Navigator.pop(context);
             widget.onAction("undo", widget.message);
@@ -337,9 +338,9 @@ Future<void> downloadFile(BuildContext context, String url, String fileName) asy
       // Nếu từ chối, hỏi mở cài đặt
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("File management permission required to download."),
+          content: const Text("File management permission required to download.").tr(),
           action: SnackBarAction(
-            label: "Setting",
+            label: "Setting".tr(),
             onPressed: () {
               openAppSettings();
             },
@@ -353,7 +354,7 @@ Future<void> downloadFile(BuildContext context, String url, String fileName) asy
   // Nếu quyền thì cho phét tải file
   try {
     final dir = await getExternalStorageDirectory();
-    if (dir == null) throw Exception("Cannot find save folder");
+    if (dir == null) throw Exception("Cannot find save folder".tr());
 
     final savePath = "${dir.path}/$fileName";
     final dio = Dio();
@@ -369,7 +370,7 @@ Future<void> downloadFile(BuildContext context, String url, String fileName) asy
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Saved $fileName at: ${dir.path}")),
+      SnackBar(content: Text("Saved $fileName at: ${dir.path}").tr()),
     );
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -384,9 +385,9 @@ Future<void> openFileUrl(BuildContext context, String url) async {
     if (!granted.isGranted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("File management permission required to open."),
+          content: const Text("File management permission required to open.").tr(),
           action: SnackBarAction(
-            label: "Setting",
+            label: "Setting".tr(),
             onPressed: () => openAppSettings(),
           ),
         ),
@@ -405,7 +406,7 @@ Future<void> openFileUrl(BuildContext context, String url) async {
 
   if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Cannot open file. Make sure you have the correct application..")),
+       SnackBar(content: Text("Cannot open file. Make sure you have the correct application..").tr()),
     );
   }
 }
@@ -479,7 +480,7 @@ Widget _buildReplyPreview(Map<String, dynamic> repliedMsg, BuildContext context,
           )
         else
           Text(
-            repliedMsg['content'] ?? 'Deleted message',
+            repliedMsg['content'] ?? 'Deleted message'.tr(),
             style: TextStyle(
               color: isDark ? Colors.white : Colors.black87,
             ),

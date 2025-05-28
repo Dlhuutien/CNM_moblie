@@ -6,6 +6,7 @@ import 'profile_screen.dart';
 import 'setting_screen.dart';
 import 'package:chating_app/data/user.dart';
 import 'search_user_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class MainScreen extends StatefulWidget {
   final ObjectUser user;
@@ -79,7 +80,7 @@ class _MainScreenState extends State<MainScreen> {
                 SizedBox(width: 5),
                 Flexible(
                   child: Text(
-                    "Searching user...",
+                    "Searching user...".tr(),
                     style: TextStyle(color: Colors.grey, fontSize: 10),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -98,13 +99,13 @@ class _MainScreenState extends State<MainScreen> {
             currentIndex = index;
           });
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: "Chat"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Contacts"),
+        items:  [
+          BottomNavigationBarItem(icon: Icon(Icons.chat), label: "Chat".tr()),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Contacts".tr()),
           BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle), label: "Profile"),
+              icon: Icon(Icons.account_circle), label: "Profile".tr()),
           BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: "Settings"),
+              icon: Icon(Icons.settings), label: "Settings".tr()),
         ],
         backgroundColor: Colors.white,
         selectedItemColor: Colors.blue,

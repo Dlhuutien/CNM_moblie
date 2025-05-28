@@ -13,6 +13,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String name;
@@ -135,7 +136,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
     if (content.isNotEmpty || hasImage) {
       if (hasImage) {
         _webSocketService?.sendMessageWithAttachment(
-          content: content.isNotEmpty ? content : "Sent a photo",
+          content: content.isNotEmpty ? content : "Sent a photo".tr(),
           attachmentUrl: _selectedImageUrl!,
           // replyToMessage: _replyingMessage,
         );
@@ -172,7 +173,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
   Future<void> _initializeRecorder() async {
     var status = await Permission.microphone.request();
     if (status != PermissionStatus.granted) {
-      throw RecordingPermissionException("Mic permission not granted");
+      throw RecordingPermissionException("Mic permission not granted".tr());
     }
     await _recorder!.openRecorder();
   }
@@ -185,7 +186,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
   Future<void> _stopRecording() async {
     String? filePath = await _recorder!.stopRecorder();
     setState(() => _isRecording = false);
-    print("Recording saved to: $filePath");
+    print("Recording saved to: $filePath".tr());
   }
 
   String? _selectedImageUrl;
@@ -197,12 +198,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
           children: [
             ListTile(
               leading: const Icon(Icons.image),
-              title: const Text("Select photo from library"),
+              title: const Text("Select photo from library").tr(),
               onTap: () => Navigator.pop(context, 'image'),
             ),
             ListTile(
               leading: const Icon(Icons.attach_file),
-              title: const Text("Select file from device"),
+              title: const Text("Select file from device").tr(),
               onTap: () => Navigator.pop(context, 'file'),
             ),
           ],
@@ -228,7 +229,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
         if (uploaded != null) {
           final isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(file.extension?.toLowerCase());
           _webSocketService?.sendMessageWithAttachment(
-            content: isImage ? "Sent a photo" : "Sent a file: ${file.name}",
+            content: isImage ? "Sent a photo".tr() : "Sent a file: ${file.name}".tr(),
             attachmentUrl: uploaded['url']!,
           );
         }
@@ -261,7 +262,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
           // Nếu là tin nhắn đính kèm file, ảnh, voice
           if (attachmentUrl != null && attachmentUrl.isNotEmpty) {
             ws.sendMessageWithAttachment(
-              content: content.isNotEmpty ? content : "Forwarded a file",
+              content: content.isNotEmpty ? content : "Forwarded a file".tr(),
               attachmentUrl: attachmentUrl,
               isForward: true,
             );
@@ -338,7 +339,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
 
         _forwardMessageToSelected(forwardedMessage, targetChatIds, friendsList, groupsList);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Message forwarded successfully!')),
+          SnackBar(content: Text('Message forwarded successfully!').tr()),
         );
       }
       return;
@@ -355,7 +356,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
       setState(() {
         if (deleteType == "unsent") {
           message['deleteReason'] = 'unsent';
-          message['content'] = 'Message recalled';
+          message['content'] = 'Message recalled'.tr();
         } else {
           _messages.removeWhere((m) => m['messageId'] == messageId);
         }
@@ -435,8 +436,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
             ? TextField(
           controller: _searchController,
           autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Search messages...',
+          decoration:  InputDecoration(
+            hintText: 'Search messages...'.tr(),
             border: InputBorder.none,
           ),
           onChanged: (query) {
@@ -476,7 +477,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
             icon: const Icon(Icons.call),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Call function will be updated later")),
+                 SnackBar(content: Text("Call function will be updated later").tr()),
               );
             },
           ),
@@ -511,7 +512,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                   children: [
                     Expanded(
                       child: Text(
-                        "Replying to: ${_replyingMessage!['content'] ?? 'Message'}",
+                        "Replying to: ${_replyingMessage!['content'] ?? 'Message'.tr()}".tr(),
                         style: TextStyle(fontStyle: FontStyle.italic),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -637,7 +638,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
                     child: TextField(
                       controller: _messageController,
                       decoration: InputDecoration(
-                        hintText: "Type a message...",
+                        hintText: "Type a message...".tr(),
                         hintStyle: TextStyle(fontSize: 13),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:chating_app/services/env_config.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 
 class CreateGroupScreen extends StatefulWidget {
@@ -127,12 +128,12 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Group photo upload failed: ${data['message']}")),
+            SnackBar(content: Text("Group photo upload failed: ${data['message']}").tr()),
           );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Group photo upload failed (status): ${response.statusCode}")),
+          SnackBar(content: Text("Group photo upload failed (status): ${response.statusCode}").tr()),
         );
       }
     }
@@ -154,14 +155,14 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Invalid group name")),
+         SnackBar(content: Text("Invalid group name").tr()),
       );
       return;
     }
 
     if (selectedIds.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("You need to select at least 2 members to create a group.")),
+         SnackBar(content: Text("You need to select at least 2 members to create a group.").tr()),
       );
       return;
     }
@@ -190,14 +191,14 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       if (response.statusCode == 201 && data["success"] == true) {
         widget.onGroupCreated?.call();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Group created successfully")),
+           SnackBar(content: Text("Group created successfully").tr()),
         );
         Navigator.pop(context);
       } else {
         showDialog(
           context: context,
           builder: (_) => AlertDialog(
-            title: const Text("Creating group fail"),
+            title: const Text("Creating group fail").tr(),
             content: Text(data["message"] ?? "Đã xảy ra lỗi không xác định."),
             actions: [
               TextButton(onPressed: () => Navigator.pop(context), child: const Text("Close")),
@@ -220,7 +221,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       appBar: AppBar(
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
-        title: const Text("Create Group"),
+        title: const Text("Create Group").tr(),
       ),
       body: SafeArea(
         child: LayoutBuilder(
@@ -265,8 +266,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                           const SizedBox(height: 16),
                           TextField(
                             controller: _groupNameController,
-                            decoration: const InputDecoration(
-                              labelText: "Group name",
+                            decoration:  InputDecoration(
+                              labelText: "Group name".tr(),
                               border: OutlineInputBorder(),
                               prefixIcon: Icon(Icons.edit),
                             ),
@@ -279,8 +280,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                               Expanded(
                                 child: TextField(
                                   controller: _phoneController,
-                                  decoration: const InputDecoration(
-                                    labelText: "Phone number",
+                                  decoration:  InputDecoration(
+                                    labelText: "Phone number".tr(),
                                     border: OutlineInputBorder(),
                                   ),
                                   keyboardType: TextInputType.phone,
@@ -294,7 +295,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                             const Text(
                               "Search result...",
                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
+                            ).tr(),
                             const SizedBox(height: 8),
                             ..._searchResult.map((user) {
                               final id = user['userId'].toString();
@@ -322,7 +323,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                           const Text(
                             "List Friends",
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
+                          ).tr(),
                           const SizedBox(height: 8),
                           SizedBox(
                             height: 350,
@@ -363,7 +364,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                             child: const Text(
                               "Create Group",
                               style: TextStyle(fontSize: 16, color: Colors.white),
-                            ),
+                            ).tr(),
                           ),
                           const SizedBox(height: 10),
                           TextButton(
@@ -371,7 +372,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                             child: const Text(
                               "Cancel",
                               style: TextStyle(color: Colors.red),
-                            ),
+                            ).tr(),
                           ),
                         ],
                       )
