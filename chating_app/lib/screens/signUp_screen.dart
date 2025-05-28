@@ -57,9 +57,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content:
-           Text('Sign up successfull'.tr())
-           ),
+          SnackBar(content:
+          Text('Sign up successfull'.tr())
+          ),
         );
 
         // Future.delayed(const Duration(milliseconds: 800), () {

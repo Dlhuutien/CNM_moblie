@@ -1,4 +1,8 @@
 {
+  "Take photo": "Take photo",
+  "Denied contact request": "Denied contact request",
+  "Request not found": "Request not found",
+  "Failed to deny request": "Failed to deny request",
   "Profile updated successfully": "Profile updated successfully",
   "Current password is incorrect.": "Current password is incorrect.",
   "COMPLETE PROFILE": "Complete Your Profile",
@@ -37,6 +41,7 @@
   "owner": "owner",
   "admin": "admin",
   "member": "member",
+  "members": "members",
   "Unnamed Group": "Unnamed Group",
   "Group photo update successful": "Group photo update successful",
   "Image update error": "Image update error",

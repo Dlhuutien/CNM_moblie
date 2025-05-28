@@ -518,7 +518,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
 
               return ListTile(
                 leading: CircleAvatar(backgroundImage: NetworkImage(m['imageUrl'] ?? '')),
-                title: Text(m['Name'.tr()] ?? ''),
+                title: Text(m['name'] ?? ''),
                 subtitle: Text(roleText),
               );
             }),

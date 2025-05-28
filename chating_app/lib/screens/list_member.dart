@@ -157,6 +157,11 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
     bool hasError = false;
 
     for (var memberId in selectedIds) {
+      if (_groupMembers.any((m) => m['userId'].toString() == memberId.toString())) {
+        print("Bỏ qua $memberId vì đã là thành viên");
+        continue; // Bỏ qua nếu đã là thành viên
+      }
+
       try {
         await ChatApi.addGroupMember(widget.chatId, widget.userId, memberId);
       } catch (e) {
@@ -164,6 +169,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
         hasError = true;
       }
     }
+
 
     if (!hasError) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -252,7 +258,10 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
               child: Column(
                 children: [
                   if (_searchResult.isNotEmpty)
-                    ..._searchResult.map((user) {
+                    ..._searchResult.where((user) {
+                      final userId = user['userId'].toString();
+                      return !_groupMembers.any((member) => member['userId'].toString() == userId);
+                    }).map((user) {
                       final id = user['userId'].toString();
                       final name = user['name'];
                       final phone = user['phone'];
@@ -379,6 +388,8 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (_) {
+        final currentUserRole = getCurrentUserRole();
+        final memberRole = member['role'];
         return Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -421,28 +432,29 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
                     : null,
               ),
               const Divider(),
-              if (getCurrentUserRole() == 'owner' && member['role'] == 'member') ...[
-                ListTile(
-                  title: const Text("Appointed as deputy group leader").tr(),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await ChatApi.changeGroupRole(
-                      widget.chatId,
-                      widget.userId,
-                      member['userId'].toString(),
-                      'admin',
-                    );
-                    await _loadData(); // cập nhật lại danh sách
-                    ScaffoldMessenger.of(context).showSnackBar(
-                       SnackBar(content: Text("Appointed as deputy group leader").tr()),
-                    );
-                  },
-                ),
+              if ((currentUserRole == 'owner' || currentUserRole == 'admin') && memberRole == 'member') ...[
+                if (currentUserRole == 'owner')
+                  ListTile(
+                    title: const Text("Appointed as deputy group leader"),
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await ChatApi.changeGroupRole(
+                        widget.chatId,
+                        widget.userId,
+                        member['userId'].toString(),
+                        'admin',
+                      );
+                      await _loadData();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Appointed as deputy group leader")),
+                      );
+                    },
+                  ),
                 ListTile(
                   title: const Text("Banned members").tr(),
                   onTap: () {
                     Navigator.pop(context);
-                    // gọi API chặn thành viên
+                    // Gọi API chặn
                   },
                 ),
                 ListTile(
@@ -460,8 +472,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
                     );
                   },
                 ),
-              ],
-            ],
+              ],            ],
           ),
         );
       },

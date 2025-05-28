@@ -197,6 +197,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
         child: Wrap(
           children: [
             ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text("Take photo").tr(),
+              onTap: () => Navigator.pop(context, 'camera'),
+            ),
+            ListTile(
               leading: const Icon(Icons.image),
               title: const Text("Select photo from library").tr(),
               onTap: () => Navigator.pop(context, 'image'),
@@ -211,13 +216,23 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
       ),
     );
 
-    if (selected == 'image') {
+    if (selected == 'camera') {
+      final XFile? capturedImage = await ImagePicker().pickImage(source: ImageSource.camera);
+      if (capturedImage != null) {
+        final url = await ChatApi.uploadImage(capturedImage);
+        if (url != null) {
+          setState(() {
+            _selectedImageUrl = url; // Lưu url ảnh để preview và gửi sau
+          });
+        }
+      }
+    } else if (selected == 'image') {
       final XFile? pickedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
       if (pickedImage != null) {
         final url = await ChatApi.uploadImage(pickedImage);
         if (url != null) {
           setState(() {
-            _selectedImageUrl = url;  // Lưu url ảnh để preview và gửi sau
+            _selectedImageUrl = url;
           });
         }
       }
@@ -236,6 +251,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
       }
     }
   }
+
 
   void _forwardMessageToSelected(
       Map<String, dynamic> message,

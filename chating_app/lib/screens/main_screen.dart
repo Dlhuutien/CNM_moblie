@@ -83,7 +83,7 @@ class _MainScreenState extends State<MainScreen> {
                     "Searching user...".tr(),
                     style: TextStyle(color: Colors.grey, fontSize: 10),
                     overflow: TextOverflow.ellipsis,
-                  ),
+                  ).tr(),
                 ),
               ],
             ),
