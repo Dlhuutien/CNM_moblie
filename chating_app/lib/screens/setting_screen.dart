@@ -2,12 +2,13 @@ import 'package:chating_app/data/user.dart';
 import 'package:chating_app/screens/chang_password_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Thêm SharedPreferences vào
-import 'login_screen.dart'; // Giả sử đây là màn hình đăng nhập của bạn
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'package:chating_app/providers/theme_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
 
-  final ObjectUser user; // thêm dòng này
+  final ObjectUser user;
 
   const SettingsScreen({super.key, required this.user});
 
@@ -96,30 +97,6 @@ class SettingsScreen extends StatelessWidget {
                 ],
               ),
             ),
-            // Logout
-            // GestureDetector(
-            //   onTap: () async {
-            //     // Xóa dữ liệu đăng nhập (ví dụ token) khỏi SharedPreferences
-            //     final prefs = await SharedPreferences.getInstance();
-            //     await prefs.remove('user_token'); // Giả sử bạn lưu token dưới khóa 'user_token'
-            //
-            //     // Điều hướng về màn hình đăng nhập
-            //     Navigator.pushReplacement(
-            //       context,
-            //       MaterialPageRoute(
-            //         builder: (context) => const LoginScreen(), // Điều hướng về màn hình đăng nhập
-            //       ),
-            //     );
-            //   },
-            //   child: const Text(
-            //     "Logout",
-            //     style: TextStyle(
-            //       color: Colors.red,
-            //       fontSize: 16,
-            //       fontWeight: FontWeight.bold,
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       ),
@@ -166,6 +143,7 @@ class SettingsScreen extends StatelessWidget {
 
   // Hàm để thay đổi chế độ sáng/tối
   void _setThemeMode(BuildContext context, ThemeMode themeMode) {
-    // TODO: Thêm logic cập nhật theme bằng Provider/SharedPreferences nếu dùng
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    themeProvider.setThemeMode(themeMode);
   }
 }
