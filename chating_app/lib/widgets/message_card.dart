@@ -71,16 +71,23 @@ class _MessageCardState extends State<MessageCard> {
             ),
             padding: const EdgeInsets.all(10),
             margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-            // decoration: BoxDecoration(
-            //   color: widget.isUserMessage ? const Color(0xFFE0ECFC) : Colors.grey[200],
-            //   borderRadius: BorderRadius.circular(12),
-            // ),
             decoration: BoxDecoration(
               color: widget.isCurrentSearch
                   ? Colors.yellow.withOpacity(0.5)
                   : (widget.highlight
                   ? Colors.yellow.withOpacity(0.2)
-                  : (widget.isUserMessage ? const Color(0xFFE0ECFC) : Colors.grey[200])),
+                  : (() {
+                if (Theme.of(context).brightness == Brightness.dark) {
+                  if (widget.isUserMessage) {
+                    return const Color(0xFF0D47A1); // màu xanh dương cho user trong dark
+                  } else {
+                    return Colors.grey.shade800; // nền xám cho người khác trong dark
+                  }
+                } else {
+                  // Light theme giữ nguyên màu cũ
+                  return widget.isUserMessage ? const Color(0xFFE0ECFC) : Colors.grey[200];
+                }
+              })()),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -98,9 +105,18 @@ class _MessageCardState extends State<MessageCard> {
                             : const AssetImage('assets/profile.png') as ImageProvider,
                       ),
                       const SizedBox(width: 8),
+                      // Text(
+                      //   widget.message['senderName'] ?? 'Unknown',
+                      //   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                      // ),
+                      // Thay style của tên người khác (nếu isGroup && !isUserMessage):
                       Text(
                         widget.message['senderName'] ?? 'Unknown',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+                        ),
                       ),
                     ],
                   ),
@@ -118,18 +134,24 @@ class _MessageCardState extends State<MessageCard> {
                   )
                 else ...[
                   if (widget.message['replyTo'] != null) ...[
-                    _buildReplyPreview(widget.message['replyTo']),
+                    // _buildReplyPreview(widget.message['replyTo']),
+                    _buildReplyPreview(widget.message['replyTo'], context, isUser: true)
                   ],
                   if (widget.message['attachmentUrl'] != null &&
                       widget.message['attachmentUrl'].toString().isNotEmpty)
                     _buildAttachmentWidget(widget.message['attachmentUrl']),
+                  // Thay style phần nội dung message (RichText) để đổi màu chữ theo user/other và theme:
                   if (widget.message['content'] != null &&
                       widget.message['content'].toString().isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 6.0),
                       child: RichText(
                         text: TextSpan(
-                          style: const TextStyle(color: Colors.black),
+                          style: TextStyle(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? (widget.isUserMessage ? Colors.white : Colors.white)
+                                : Colors.black,
+                          ),
                           children: _buildTextWithLinks(widget.message['content'] ?? ""),
                         ),
                       ),
@@ -202,11 +224,6 @@ class _MessageCardState extends State<MessageCard> {
         ),
       );
     }
-  }
-
-  bool _isImageFile(String url) {
-    final ext = url.toLowerCase().split('.').last;
-    return ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext);
   }
 
   void _showMessageOptions(BuildContext context) {
@@ -413,15 +430,23 @@ bool _isImageFile(String url) {
   final ext = url.toLowerCase().split('.').last;
   return ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext);
 }
-Widget _buildReplyPreview(Map<String, dynamic> repliedMsg) {
+
+Widget _buildReplyPreview(Map<String, dynamic> repliedMsg, BuildContext context, {bool isUser = false}) {
   final bool isImage = repliedMsg['attachmentUrl'] != null &&
       _isImageFile(repliedMsg['attachmentUrl']);
 
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+
   return Container(
     decoration: BoxDecoration(
-      color: Colors.grey.shade100,
+      color: isDark ? Colors.grey.shade700 : Colors.grey.shade100,
+      // color: isDark ? Colors.white : Colors.grey.shade100,
+      borderRadius: BorderRadius.circular(8),
       border: Border(
-        left: BorderSide(color: Colors.blue.shade300, width: 4),
+        left: BorderSide(
+          color: Colors.blue.shade300,
+          width: 4,
+        ),
       ),
     ),
     padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
@@ -431,7 +456,11 @@ Widget _buildReplyPreview(Map<String, dynamic> repliedMsg) {
       children: [
         Text(
           repliedMsg['senderName'] ?? 'Unknown',
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+            color: Colors.orange,
+          ),
         ),
         const SizedBox(height: 4),
         if (isImage)
@@ -441,14 +470,19 @@ Widget _buildReplyPreview(Map<String, dynamic> repliedMsg) {
               const SizedBox(width: 4),
               Text(
                 '[Picture]',
-                style: const TextStyle(color: Colors.black54, fontStyle: FontStyle.italic),
+                style: TextStyle(
+                  color: isDark ? Colors.grey.shade800 : Colors.black54,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
             ],
           )
         else
           Text(
             repliedMsg['content'] ?? 'Deleted message',
-            style: const TextStyle(color: Colors.black87),
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87,
+            ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
