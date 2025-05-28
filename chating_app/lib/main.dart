@@ -7,6 +7,8 @@ import 'screens/introduction_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/signUp_screen.dart';
 import 'package:chating_app/services/env_config.dart';
+import 'package:provider/provider.dart';
+import 'package:chating_app/providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +44,11 @@ void main() async {
       supportedLocales: const [Locale('en'), Locale('vi')],
       path: 'assets/translations', // Thư mục chứa file JSON
       fallbackLocale: const Locale('en'),
-      child: MyApp(),
+      child: ChangeNotifierProvider(
+        create: (_) => ThemeProvider(),
+        child: MyApp(),
+      ),
+      // child: MyApp(),
     ),
   );
 }
@@ -50,6 +56,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
       /**
        * Hiển thị thông báo trên top
@@ -65,6 +72,9 @@ class MyApp extends StatelessWidget {
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
+      themeMode: themeProvider.themeMode,
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
     );
   }
 }
