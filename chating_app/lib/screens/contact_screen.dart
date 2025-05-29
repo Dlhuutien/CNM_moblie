@@ -9,6 +9,7 @@ import 'package:chating_app/screens/chat_detail_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:chating_app/services/env_config.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:chating_app/screens/friend_detail_screen.dart';
 
 class ContactScreen extends StatelessWidget {
   final ObjectUser user;
@@ -122,6 +123,29 @@ class _FriendListState extends State<FriendList> {
     }
   }
 
+  Future<void> openFriendDetail(Map<String, dynamic> friend) async {
+    final phone = friend['phone'];
+    if (phone != null && phone.toString().isNotEmpty) {
+      final url = Uri.parse('${EnvConfig.baseUrl}/user/account?phone=$phone');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is List && data.isNotEmpty) {
+          final userInfo = data[0];
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => FriendDetailScreen(friend: userInfo),
+              ),
+            );
+          }
+        }
+      }
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -150,6 +174,7 @@ class _FriendListState extends State<FriendList> {
             ),
             ...friends.map((friend) {
               return ListTile(
+                onTap: () => openFriendDetail(friend),
                 leading: (friend['imageUrl'] != null && friend['imageUrl'].toString().isNotEmpty)
                     ? CircleAvatar(
                   backgroundImage: NetworkImage(friend['imageUrl']),
@@ -177,23 +202,23 @@ class _FriendListState extends State<FriendList> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  ChatDetailScreen(
-                                    name: friend['name'],
-                                    chatId: chatId.join('-'),
-                                    user: widget.user,
-                                    userId: widget.user.userID,
-                                  ),
+                              builder: (context) => ChatDetailScreen(
+                                name: friend['name'],
+                                chatId: chatId.join('-'),
+                                user: widget.user,
+                                userId: widget.user.userID,
+                              ),
                             ),
                           );
                         },
                       ),
-                      IconButton(icon: const Icon(Icons.call),
-                          onPressed: () {}),
-                      IconButton(icon: const Icon(
-                          Icons.delete, color: Colors.red), onPressed: () {
-                        _unfriend(friend['contactId'].toString());
-                      },),
+                      IconButton(icon: const Icon(Icons.call), onPressed: () {}),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          _unfriend(friend['contactId'].toString());
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -206,6 +231,7 @@ class _FriendListState extends State<FriendList> {
   }
 }
 
+///Widget thông báo lời mời kết bạn
 class NotificationList extends StatefulWidget {
   final String userId;
   const NotificationList({super.key, required this.userId});
@@ -267,6 +293,29 @@ class _NotificationListState extends State<NotificationList> {
     }
   }
 
+  Future<void> openFriendDetail(Map<String, dynamic> friend) async {
+    final phone = friend['senderPhone'];
+    if (phone != null && phone.toString().isNotEmpty) {
+      final url = Uri.parse('${EnvConfig.baseUrl}/user/account?phone=$phone');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is List && data.isNotEmpty) {
+          final userInfo = data[0];
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => FriendDetailScreen(friend: userInfo),
+              ),
+            );
+          }
+        }
+      }
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     if (requests.isEmpty) return  Center(child: Text("No friend requests").tr());
@@ -284,6 +333,7 @@ class _NotificationListState extends State<NotificationList> {
           ),
           title: Text(request['senderName']),
           subtitle: Text("SĐT: ${request['senderPhone']}"),
+          onTap: () => openFriendDetail(request),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

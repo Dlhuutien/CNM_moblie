@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:chating_app/services/env_config.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:chating_app/services/friend_service.dart';
 
 class SearchUserScreen extends StatefulWidget {
   final ObjectUser user;
@@ -183,15 +184,8 @@ class _SearchUserScreenState extends State<SearchUserScreen> {
   }
 
   Future<void> _sendFriendRequest(int contactId) async {
-    try {
-      final response = await http.post(
-        Uri.parse("${EnvConfig.baseUrl}/contact/add?userId=$currentUserID&contactId=$contactId"),
-      );
-      final res = json.decode(response.body);
-      _showMessage(res['message'] ?? "Friend request sent".tr());
-    } catch (e) {
-      _showMessage("Error sending invitation: $e");
-    }
+    final message = await FriendService.sendFriendRequest(currentUserID, contactId);
+    _showMessage(message);
   }
 
   Future<void> _deleteHistoryAt(int index) async {
