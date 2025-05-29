@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:chating_app/services/env_config.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:chating_app/screens/friend_detail_screen.dart';
+import 'package:chating_app/services/friend_service.dart';
 
 class ContactScreen extends StatelessWidget {
   final ObjectUser user;
@@ -77,7 +78,7 @@ class _FriendListState extends State<FriendList> {
   Future<void> _fetchFriends() async {
     setState(() => isLoading = true);
     try {
-      final grouped = await ChatApi.getGroupedFriends(widget.user.userID);
+      final grouped = await FriendService.getGroupedFriends(widget.user.userID);
       setState(() {
         groupedFriends = grouped;
       });
@@ -109,7 +110,7 @@ class _FriendListState extends State<FriendList> {
     );
 
     if (confirmed == true) {
-      final success = await ChatApi.unfriendContact(widget.user.userID,contactId);
+      final success = await FriendService.unfriendContact(widget.user.userID,contactId);
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
            SnackBar(content: Text('Deleted friend successfully').tr()),
@@ -250,43 +251,37 @@ class _NotificationListState extends State<NotificationList> {
   }
 
   /// Gọi API lấy danh sách lời mời kết bạn
-  Future<void> _fetchRequests() async {
-    final response = await http.get(Uri.parse("${EnvConfig.baseUrl}/contact/requests?userId=${widget.userId}"));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+  void _fetchRequests() async {
+    try {
+      final requestsData = await FriendService.fetchRequests(widget.userId);
       setState(() {
-        requests = data['data'];
+        requests = requestsData;
       });
+    } catch (e) {
+      print("Lỗi khi lấy lời mời kết bạn: $e");
     }
   }
 
   /// Chấp nhận lời mời kết bạn
   Future<void> _acceptRequest(String senderId) async {
-    final response = await http.post(
-      Uri.parse("${EnvConfig.baseUrl}/contact/accept?userId=${widget.userId}&senderId=$senderId"),
-    );
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar( SnackBar(content: Text("Accepted").tr()));
+    final success = await FriendService.acceptRequest(widget.userId, senderId);
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Accepted").tr()));
       _fetchRequests();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Accept failed").tr()));
     }
   }
 
   /// Từ chối lời mời kết bạn
   Future<void> _denyRequest(String senderId) async {
-    final response = await http.post(
-      Uri.parse("${EnvConfig.baseUrl}/contact/deny?userId=${widget.userId}&senderId=$senderId"),
-      headers: {'Content-Type': 'application/json'},
-    );
-    if (response.statusCode == 200) {
+    final success = await FriendService.denyRequest(widget.userId, senderId);
+    if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Denied contact request").tr()),
       );
-      _fetchRequests(); // Cập nhật lại danh sách
-    } else if (response.statusCode == 404) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Request not found").tr()),
-      );
-    } else {
+      _fetchRequests();
+    } else if (success == false) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to deny request").tr()),
       );

@@ -15,20 +15,28 @@ class FriendDetailScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(BuildContext context, String label, String value) {
+    final textColor = Theme.of(context).textTheme.bodyMedium?.color ?? Colors.white;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+          ),
           Expanded(
             child: Text(
               value,
               textAlign: TextAlign.right,
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
-              style: const TextStyle(color: Colors.black87),
+              style: TextStyle(color: textColor),
             ),
           ),
         ],
@@ -91,11 +99,11 @@ class FriendDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoRow('Name'.tr(), name),
-                  _buildInfoRow('Phone'.tr(), phone),
-                  _buildInfoRow('Email'.tr(), email),
-                  _buildInfoRow('Location'.tr(), location),
-                  _buildInfoRow('Birthday'.tr(), _formatDateOnly(birthday.toString())),
+                  _buildInfoRow(context,'Name'.tr(), name),
+                  _buildInfoRow(context,'Phone'.tr(), phone),
+                  _buildInfoRow(context,'Email'.tr(), email),
+                  _buildInfoRow(context,'Location'.tr(), location),
+                  _buildInfoRow(context, 'Birthday'.tr(), _formatDateOnly(birthday.toString())),
                 ],
               ),
             ),
