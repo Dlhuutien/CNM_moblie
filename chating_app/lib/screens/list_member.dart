@@ -6,6 +6,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:chating_app/services/env_config.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:chating_app/services/friend_service.dart';
+import 'package:chating_app/screens/friend_detail_screen.dart';
+
 
 class ListMemberScreen extends StatefulWidget {
   final String userId;
@@ -42,6 +45,29 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
     return me['role'] ?? 'member';
   }
 
+  ///Gửi lời mời kết bạn
+  Future<void> _sendFriendRequest(int contactId) async {
+    final message = await FriendService.sendFriendRequest(widget.userId, contactId);
+    print('Friend request sent to $contactId');
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message.tr())));
+
+    setState(() {
+      // Cập nhật _searchResult
+      // final searchIndex = _searchResult.indexWhere((u) => u['userId'] == contactId);
+      final searchIndex = _searchResult.indexWhere((u) => u['userId'].toString() == contactId.toString());
+      if (searchIndex != -1) {
+        _searchResult[searchIndex]['friendRequestSent'] = true;
+      }
+
+      // Cập nhật _friendsNotInGroup
+      // final friendIndex = _friendsNotInGroup.indexWhere((f) => f['contactId'] == contactId);
+      final friendIndex = _friendsNotInGroup.indexWhere((f) => f['contactId'].toString() == contactId.toString());
+      if (friendIndex != -1) {
+        _friendsNotInGroup[friendIndex]['friendRequestSent'] = true;
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -380,6 +406,36 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
     );
   }
 
+  ///Hàm xem thông tin user
+  Future<void> openFriendDetail(Map<String, dynamic> member) async {
+    final userId = member['userId'];
+    if (userId != null) {
+      final url = Uri.parse('${EnvConfig.baseUrl}/user/account?id=$userId'); // giả sử API lấy theo id
+      final response = await http.get(url);
+      print("==> Friend detail response: ${response.body}");
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is List && data.isNotEmpty) {
+          final userInfo = data[0];
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => FriendDetailScreen(friend: userInfo),
+            ),
+          );
+        }
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not fetch friend info')),
+        );
+      }
+    } else {
+      print("==> userId không hợp lệ");
+    }
+  }
+
   ///Hiển thị thông tin khi nhấn vào thành viên
   void _showMemberInfo(BuildContext context, Map<String, dynamic> member) {
     showModalBottomSheet(
@@ -402,6 +458,12 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
                 ),
                 title: Text(member['name'] ?? ''),
                 subtitle: Text(member['role'] ?? ''),
+                onTap: () async {
+                  Navigator.pop(context);
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    openFriendDetail(member);
+                  });
+                },
                 trailing: member['isFriend'] == true
                     ? Row(
                   mainAxisSize: MainAxisSize.min,
@@ -482,16 +544,28 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
   ///Hiển thị nút kết bạn
   Widget? _buildTrailing(Map<String, dynamic> member) {
     final isFriend = member['isFriend'] == true;
+    final friendRequestSent = member['friendRequestSent'] == true;
+
     if (member['userId'].toString() == widget.userId) return const SizedBox();
 
-    return isFriend
-        ? null
-        : ElevatedButton(
-      onPressed: () {
-        // gọi API kết bạn
+    if (isFriend) return null;
+
+    return ElevatedButton(
+      onPressed: friendRequestSent
+          ? null // Disable button nếu đã gửi lời mời
+          : () {
+        final contactId = int.tryParse(member['userId'].toString());
+        if (contactId != null) {
+          _sendFriendRequest(contactId);
+        }
       },
-      style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-      child: const Text("Add friend", style: TextStyle(color: Colors.white)).tr(),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: friendRequestSent ? Colors.grey : Colors.blue,
+      ),
+      child: Text(
+        friendRequestSent ? "Request sent" : "Add friend",
+        style: const TextStyle(color: Colors.white),
+      ).tr(),
     );
   }
 }
