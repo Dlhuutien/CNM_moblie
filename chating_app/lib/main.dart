@@ -9,9 +9,19 @@ import 'screens/signUp_screen.dart';
 import 'package:chating_app/services/env_config.dart';
 import 'package:provider/provider.dart';
 import 'package:chating_app/providers/theme_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  Future<void> requestNotificationPermission() async {
+    final status = await Permission.notification.request();
+    if (status.isGranted) {
+      print("Notification permission granted");
+    } else {
+      print("Notification permission denied");
+    }
+  }
 
   // Load .env file trước khi dùng EnvConfig
   // await dotenv.load(fileName: ".env");
@@ -24,6 +34,7 @@ void main() async {
     print("Lỗi khi load env: $e");
   }
   await EasyLocalization.ensureInitialized();
+  await requestNotificationPermission();
 
   // WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(

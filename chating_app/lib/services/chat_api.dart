@@ -163,19 +163,6 @@ class ChatApi {
     }
   }
 
-  ///Lấy danh sách bạn bè
-  static Future<List<Map<String, dynamic>>> getContacts(String userId) async {
-    final url = Uri.parse("$baseUrl/contact/list?userId=$userId");
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return List<Map<String, dynamic>>.from(data['data']);
-    } else {
-      throw Exception("Lỗi khi lấy danh sách bạn bè: ${response.body}");
-    }
-  }
-
   ///Thêm thành viên vào nhóm
   static Future<void> addGroupMember(String chatId, String userId, int newMemberId) async {
     final url = Uri.parse("$baseUrl/group/member/add");
@@ -324,24 +311,6 @@ class ChatApi {
     }
   }
 
-  /// Xóa bạn bè
-  static Future<bool> unfriendContact(String userId, String contactId) async {
-    final url = Uri.parse("$baseUrl/contact/unfriend?userId=$userId&contactId=$contactId");
-    final response = await http.post(url);
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['success'] == true;
-    } else if (response.statusCode == 404) {
-      final data = jsonDecode(response.body);
-      print("Lỗi: ${data['message']}");
-      return false;
-    } else {
-      print("Lỗi không xác định khi xóa liên hệ: ${response.body}");
-      return false;
-    }
-  }
-
   /// Lấy và nhóm các nhóm chat theo chữ cái đầu
   static Future<Map<String, List<Map<String, dynamic>>>> getGroupedGroups(String userId) async {
     final chats = await fetchChatsWithLatestMessage(userId);
@@ -366,34 +335,6 @@ class ChatApi {
     }
 
     return grouped;
-  }
-
-  /// Lấy và nhóm danh sách bạn bè theo chữ cái đầu
-  static Future<Map<String, List<Map<String, dynamic>>>> getGroupedFriends(String userId) async {
-    final response = await http.get(Uri.parse("$baseUrl/contact/list?userId=$userId"));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final List<Map<String, dynamic>> sorted =
-      List<Map<String, dynamic>>.from(data['data']);
-
-      sorted.sort((a, b) {
-        final nameA = (a['name'] ?? '').toLowerCase();
-        final nameB = (b['name'] ?? '').toLowerCase();
-        return nameA.compareTo(nameB);
-      });
-
-      final Map<String, List<Map<String, dynamic>>> grouped = {};
-      for (var friend in sorted) {
-        final name = friend['name'] ?? '';
-        final letter = name.isNotEmpty ? name[0].toUpperCase() : '#';
-        grouped.putIfAbsent(letter, () => []).add(friend);
-      }
-
-      return grouped;
-    } else {
-      throw Exception("Lỗi khi lấy danh sách bạn bè: ${response.body}");
-    }
   }
 
 }

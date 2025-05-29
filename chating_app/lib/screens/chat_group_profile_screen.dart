@@ -248,7 +248,7 @@ class _ChatGroupProfileScreenState extends State<ChatGroupProfileScreen> {
            SnackBar(content: Text("Group Dissolution Successful").tr()),
         );
 
-        await Future.delayed(const Duration(seconds: 1)); // Cho user thấy thông báo
+        await Future.delayed(const Duration(seconds: 10)); // Cho user thấy thông báo
 
         if (context.mounted) {
           Navigator.pushAndRemoveUntil(

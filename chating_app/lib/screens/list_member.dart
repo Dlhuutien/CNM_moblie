@@ -8,6 +8,7 @@ import 'package:chating_app/services/env_config.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:chating_app/services/friend_service.dart';
 import 'package:chating_app/screens/friend_detail_screen.dart';
+import 'package:chating_app/services/friend_service.dart';
 
 
 class ListMemberScreen extends StatefulWidget {
@@ -129,7 +130,7 @@ class _ListMemberScreenState extends State<ListMemberScreen> with TickerProvider
 
   Future<void> _loadData() async {
     try {
-      final rawFriends = await ChatApi.getContacts(widget.userId);
+      final rawFriends = await FriendService.getContacts(widget.userId);
       final members = await ChatApi.getGroupMembers(widget.chatId, widget.userId);
       final memberIds = members.map((m) => m['userId'].toString()).toSet();
 

@@ -5,6 +5,7 @@ import 'package:chating_app/widgets/message_card.dart';
 import 'package:chating_app/services/chat_api.dart';
 import 'package:chating_app/widgets/forward_select_screen.dart';
 import 'chat_profile_screen.dart';
+import 'package:chating_app/services/friend_service.dart';
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -317,7 +318,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> with WidgetsBinding
 
     print("Action: $action, message: $message");
     if (action == "forward") {
-      final friendsGrouped = await ChatApi.getGroupedFriends(widget.userId);
+      final friendsGrouped = await FriendService.getGroupedFriends(widget.userId);
       final groupsGrouped = await ChatApi.getGroupedGroups(widget.userId);
 
       final friendsList = _flattenGroupedData(friendsGrouped);
