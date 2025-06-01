@@ -45,10 +45,9 @@ The backend uses **Amazon Web Services (AWS)** for data storage and management, 
 
 ## Backend
 
-This app does not contain backend logic in Flutter itself. The backend (hosted separately) is assumed to be built with:
-
+The backend (developed separately) is assumed to be built using:
 -  **Node.js (Express)**
-- Responsible for authentication, message history, user and group management
+- Hosted on AWS, handling authentication, chat logic, file storage, and notifications
 
 ## Frontend
 
