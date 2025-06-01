@@ -1,16 +1,62 @@
 # chating_app
 
-A new Flutter project.
+A real-time chat application built with Flutter, inspired by messaging platforms like Messenger or Zalo.
 
-## Getting Started
+## Description
 
-This project is a starting point for a Flutter application.
+**chating_app** is a Flutter-based messaging app that supports real-time chatting, Google Sign-In authentication, file sharing, emoji support, local push notifications, and voice/video calling features. The goal is to deliver a seamless and familiar chat experience on mobile devices.
 
-A few resources to get you started if this is your first Flutter project:
+## Technologies Used
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Flutter (Dart)
+- Firebase Auth (Google authentication)
+- Google Sign-In
+- Dio & HTTP (API calls)
+- Firebase Core/Web
+- Shared Preferences (token & session storage)
+- flutter_local_notifications (local notifications)
+- flutter_sound, permission_handler (voice messaging/calling)
+- file_picker, image_picker (file and image selection)
+- emoji_picker_flutter (emoji integration)
+- easy_localization (multi-language support)
+- provider (state management)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Integration
+
+- Google Sign-In with Firebase for authentication  
+- RESTful APIs for syncing messages, groups, and user data  
+- File upload: send images, documents  
+- Push notifications for incoming messages
+
+## Role
+
+As the main developer, responsibilities include:
+
+- Developing UI/UX fully in Flutter  
+- Integrating backend APIs and Firebase services  
+- Managing localization, file handling, API communication, and app security  
+
+## Database
+
+The app does not directly use Firebase Realtime DB. Instead, backend APIs likely connect to:
+
+- **MongoDB** or **MySQL** (through API)  
+- **Firebase Firestore** (optional for future scaling)
+
+## Backend
+
+This app does not contain backend logic in Flutter itself. The backend (hosted separately) is assumed to be built with:
+
+- Express.js 
+- Responsible for authentication, message history, user and group management
+
+## Frontend
+
+- Fully developed using Flutter  
+- Multi-screen support: login, chat, groups, profile, media  
+- Rich features: emoji picker, file/voice messaging, Google login  
+- Optimized for Android platform (with potential iOS support)
+
+---
+
+Feel free to contribute or fork this project for further improvements!
