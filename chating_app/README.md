@@ -4,7 +4,7 @@ A real-time chat application built with Flutter, inspired by messaging platforms
 
 ## Description
 
-**chating_app** is a Flutter-based messaging app that supports real-time chatting, Google Sign-In authentication, file sharing, emoji support, local push notifications, and voice/video calling features. The goal is to deliver a seamless and familiar chat experience on mobile devices.
+**chating_app** is a Flutter-based messaging app that supports real-time chatting, Google Sign-In authentication, file sharing, emoji support, local push notifications. The goal is to deliver a seamless and familiar chat experience on mobile devices.
 
 ## Technologies Used
 
@@ -40,7 +40,7 @@ As the main developer, responsibilities include:
 
 The backend uses **Amazon Web Services (AWS)** for data storage and management, likely involving services such as:
 
-- **Amazon RDS** or **Amazon DynamoDB** for storing user and chat data  
+- **Amazon DynamoDB** for storing user and chat data  
 - **Amazon S3** for file and media uploads
 
 ## Backend
