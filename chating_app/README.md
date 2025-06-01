@@ -38,16 +38,16 @@ As the main developer, responsibilities include:
 
 ## Database
 
-The app does not directly use Firebase Realtime DB. Instead, backend APIs likely connect to:
+The backend uses **Amazon Web Services (AWS)** for data storage and management, likely involving services such as:
 
-- **MongoDB** or **MySQL** (through API)  
-- **Firebase Firestore** (optional for future scaling)
+- **Amazon RDS** or **Amazon DynamoDB** for storing user and chat data  
+- **Amazon S3** for file and media uploads
 
 ## Backend
 
 This app does not contain backend logic in Flutter itself. The backend (hosted separately) is assumed to be built with:
 
-- Express.js 
+-  **Node.js (Express)**
 - Responsible for authentication, message history, user and group management
 
 ## Frontend
