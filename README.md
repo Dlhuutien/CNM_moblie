@@ -40,8 +40,9 @@ As the main developer, responsibilities include:
 
 The backend uses **Amazon Web Services (AWS)** for data storage and management, likely involving services such as:
 
-- **Amazon DynamoDB** for storing user and chat data  
+- **Amazon DynamoDB** stores user and group data
 - **Amazon S3** for file and media uploads
+- **WebSocket** used to handle real-time chat, enabling fast and continuous message sending and receiving without needing to reload data
 
 ## Backend
 
