@@ -42,6 +42,8 @@ The backend uses **Amazon Web Services (AWS)** for data storage and management, 
 
 - **Amazon DynamoDB** stores user and group data
 - **Amazon S3** for file and media uploads
+
+## Real-time Communication
 - **WebSocket** used to handle real-time chat, enabling fast and continuous message sending and receiving without needing to reload data
 
 ## Backend
